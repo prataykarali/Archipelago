@@ -1,0 +1,1591 @@
+{
+  "graph_version_id": "graph_v2_d14",
+  "schema_version": "2.0.0-d14",
+  "parent_graph_id": "graph_v1_okf610",
+  "parent_graph_sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+  "output_graph_sha256": "33a6f7117acc9160e3a9dea99b04b159a355f8c2efa350c0b7d926d0da430774",
+  "summary_counts": {
+    "removed_artifact_nodes": 5,
+    "merged_duplicate_nodes": 5,
+    "added_curriculum_nodes": 31,
+    "updated_summaries": 87,
+    "removed_invalid_edges": 102,
+    "added_curated_edges": 66,
+    "cycle_breaks": 1
+  },
+  "removed_nodes": [
+    {
+      "id": "equation_only",
+      "reason": "Malformed prompt-ablation label ('Equation Only'), not a curriculum concept."
+    },
+    {
+      "id": "fast",
+      "reason": "Adjective extracted from FlashAttention paper title, not a standalone concept."
+    },
+    {
+      "id": "flow_feature_name_description",
+      "reason": "Table column header artifact from network security PDF."
+    },
+    {
+      "id": "memory_efficient",
+      "reason": "Adjective extracted from FlashAttention paper title, not a standalone concept."
+    },
+    {
+      "id": "variable_compute_only",
+      "reason": "Malformed ablation label ('Variable Compute Only'), not a concept."
+    }
+  ],
+  "merged_nodes": [
+    {
+      "from_id": "adversarial_generative_adversarial_net",
+      "to_id": "generative_adversarial_network"
+    },
+    {
+      "from_id": "dpo",
+      "to_id": "direct_preference_optimization"
+    },
+    {
+      "from_id": "maximum_likelihood",
+      "to_id": "maximum_likelihood_estimation"
+    },
+    {
+      "from_id": "rag",
+      "to_id": "retrieval_augmented_generation"
+    },
+    {
+      "from_id": "score_matching_methods",
+      "to_id": "score_matching"
+    }
+  ],
+  "added_nodes": [
+    {
+      "id": "singular_value_decomposition",
+      "label": "Singular Value Decomposition (SVD)",
+      "domain": "Mathematics for Computing",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "eigendecomposition",
+      "label": "Eigendecomposition",
+      "domain": "Mathematics for Computing",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "denoising_diffusion_probabilistic_models",
+      "label": "Denoising Diffusion Probabilistic Models (DDPM)",
+      "domain": "AI & Machine Learning",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "bottom_up_parsing",
+      "label": "Bottom-Up Parsing",
+      "domain": "Compilers & Languages",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "pumping_lemma",
+      "label": "Pumping Lemma",
+      "domain": "Automata & Computation",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "regular_languages",
+      "label": "Regular Languages",
+      "domain": "Automata & Computation",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "context_free_languages",
+      "label": "Context-Free Languages",
+      "domain": "Automata & Computation",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "dijkstras_algorithm",
+      "label": "Dijkstra's Shortest-Path Algorithm",
+      "domain": "Data Structures & Algorithms",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "page_table",
+      "label": "Page Table",
+      "domain": "Operating Systems",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "translation_lookaside_buffer",
+      "label": "Translation Lookaside Buffer (TLB)",
+      "domain": "Operating Systems",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "base_and_bounds",
+      "label": "Base-and-Bounds Address Translation",
+      "domain": "Operating Systems",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "public_key_cryptography",
+      "label": "Public-Key Cryptography",
+      "domain": "Information Security",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "rsa_cryptosystem",
+      "label": "RSA Cryptosystem",
+      "domain": "Information Security",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "symmetric_key_cryptography",
+      "label": "Symmetric-Key Cryptography",
+      "domain": "Information Security",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "cryptographic_hash_function",
+      "label": "Cryptographic Hash Function",
+      "domain": "Information Security",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "tls_protocol",
+      "label": "Transport Layer Security (TLS)",
+      "domain": "Information Security",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "network_intrusion_detection",
+      "label": "Network Intrusion Detection System (NIDS)",
+      "domain": "Information Security",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "software_engineering",
+      "label": "Software Engineering",
+      "domain": "Software Engineering",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "software_development_lifecycle",
+      "label": "Software Development Lifecycle (SDLC)",
+      "domain": "Software Engineering",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "solid_principles",
+      "label": "SOLID Design Principles",
+      "domain": "Software Engineering",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "unit_testing",
+      "label": "Unit Testing",
+      "domain": "Software Engineering",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "design_patterns",
+      "label": "Software Design Patterns",
+      "domain": "Software Engineering",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "continuous_integration",
+      "label": "Continuous Integration (CI)",
+      "domain": "Software Engineering",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "version_control",
+      "label": "Version Control System (VCS)",
+      "domain": "Software Engineering",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "cpu_architecture",
+      "label": "CPU Architecture",
+      "domain": "Computer Architecture",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "instruction_set_architecture",
+      "label": "Instruction Set Architecture (ISA)",
+      "domain": "Computer Architecture",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "instruction_pipelining",
+      "label": "Instruction Pipelining",
+      "domain": "Computer Architecture",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "pipeline_hazards",
+      "label": "Pipeline Hazards",
+      "domain": "Computer Architecture",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "cache_memory",
+      "label": "CPU Cache Memory",
+      "domain": "Computer Architecture",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "cache_coherence",
+      "label": "Cache Coherence",
+      "domain": "Computer Architecture",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "id": "branch_prediction",
+      "label": "Branch Prediction",
+      "domain": "Computer Architecture",
+      "review_status": "PENDING_REVIEW"
+    }
+  ],
+  "updated_summaries": [
+    "2d_discrete_convolution",
+    "additive_increase_multiplicative_decrease",
+    "address_translation",
+    "atomic_operations",
+    "b_tree",
+    "bankers_algorithm",
+    "bellman_equation",
+    "bm25",
+    "bradley_terry_preference_model",
+    "chemical_kinetics",
+    "chomsky_hierarchy",
+    "clustered_index",
+    "computability_theory",
+    "concurrency",
+    "concurrency_control",
+    "condition_variable",
+    "conditional_probability",
+    "critical_section",
+    "data_link_layer",
+    "database_transaction",
+    "decidability",
+    "demand_paging",
+    "digital_logic_gates",
+    "discrete_time_signals",
+    "divide_and_conquer",
+    "dpr",
+    "eigenvalues_and_eigenvectors",
+    "enthalpy",
+    "entropy",
+    "error_detection",
+    "extendible_hashing",
+    "finite_automata",
+    "flow_control",
+    "foreign_key_constraint",
+    "formal_languages",
+    "gpt",
+    "gpt_2",
+    "graph_traversal",
+    "halting_problem",
+    "hash_table",
+    "inheritance",
+    "inheritance_hierarchy",
+    "instruction_cycle",
+    "intermediate_code_generation",
+    "kernel_mode",
+    "kernel_trick",
+    "linear_algebra",
+    "linear_transformation",
+    "ll_parser",
+    "lr_parser",
+    "memory_hierarchy",
+    "modular_arithmetic",
+    "multilayer_perceptron",
+    "multilevel_feedback_queue",
+    "network_layer",
+    "nondeterministic_finite_automaton",
+    "packet_encapsulation",
+    "page_fault_handling",
+    "parse_tree",
+    "preemptive_multitasking",
+    "priority_queue_mechanics",
+    "process_state",
+    "producer_consumer_problem",
+    "protocol_stack",
+    "queue_mechanics",
+    "range_scan",
+    "relational_algebra",
+    "resource_allocation_graph",
+    "round_robin_scheduling",
+    "segmentation",
+    "semantic_analysis",
+    "set_theory",
+    "shortest_path_unweighted",
+    "sliding_window_protocol",
+    "spin_lock",
+    "stack_mechanics",
+    "strongly_connected_components",
+    "tcp_ip_model",
+    "token",
+    "token_stream",
+    "topological_sort",
+    "transfer_learning_in_nlp",
+    "transformer",
+    "transformer_encoder",
+    "two_phase_locking",
+    "wave_equations",
+    "write_ahead_logging"
+  ],
+  "removed_edges": [
+    {
+      "from_id": "neural_network",
+      "to_id": "attention_mechanism",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-012",
+      "reason": "Inverted dependency: Attention Mechanism builds on Neural Networks, not vice versa."
+    },
+    {
+      "from_id": "neural_network",
+      "to_id": "graph_convolutional_network",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-010",
+      "reason": "Inverted dependency: GCN requires Neural Network, not vice versa."
+    },
+    {
+      "from_id": "deep_learning",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "REQUIRES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "long_short_term_memory",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "REQUIRES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "language_model",
+      "to_id": "summarization",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DAG-006",
+      "reason": "Inverted dependency: Summarization uses Language Models, not vice versa."
+    },
+    {
+      "from_id": "language_model",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "REQUIRES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "reinforcement_learning",
+      "to_id": "bradley_terry_preference_model",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DAG-004",
+      "reason": "General RL does not require the Bradley-Terry preference model."
+    },
+    {
+      "from_id": "large_language_model",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "REQUIRES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "gpt_2",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "REQUIRES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "vector",
+      "relation": "REQUIRES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "community_summary",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "REQUIRES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "global_sensemaking",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "REQUIRES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "variational_inference",
+      "to_id": "diffusion_model",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DAG-011",
+      "reason": "Inverted dependency: Diffusion models build on variational inference, not vice versa."
+    },
+    {
+      "from_id": "negative_passage",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "REQUIRES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "bayesian_inference",
+      "to_id": "variational_inference",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DAG-012",
+      "reason": "Inverted dependency: Variational inference approximates Bayesian inference."
+    },
+    {
+      "from_id": "self_attention",
+      "to_id": "transformer",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DAG-007",
+      "reason": "Inverted dependency: Transformer requires Self-Attention, not vice versa."
+    },
+    {
+      "from_id": "direct_preference_optimization",
+      "to_id": "reward_function",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-011",
+      "reason": "DPO eliminates explicit reward-model training via closed-form reparameterization."
+    },
+    {
+      "from_id": "direct_preference_optimization",
+      "to_id": "gpt_4",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-011",
+      "reason": "DPO is a general preference optimization objective and does not require GPT-4."
+    },
+    {
+      "from_id": "probability_distribution",
+      "to_id": "neural_network",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-010",
+      "reason": "Probability distribution is foundational to neural networks, not dependent on them."
+    },
+    {
+      "from_id": "autonomous_system",
+      "to_id": "large_language_model",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'autonomous_system/large_language_model'."
+    },
+    {
+      "from_id": "reasoning_over_context",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "REQUIRES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "inner_monologue",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "REQUIRES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "bit_transmission",
+      "to_id": "network_layer",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-016",
+      "reason": "Inverted OSI dependency: Physical Bit Transmission (L1) precedes Network Layer (L3)."
+    },
+    {
+      "from_id": "bit_transmission",
+      "to_id": "packet_switching",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-016",
+      "reason": "Inverted OSI dependency: Physical Bit Transmission (L1) precedes Packet Switching (L3)."
+    },
+    {
+      "from_id": "virtual_memory",
+      "to_id": "address_translation",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DAG-013",
+      "reason": "Address translation is a mechanism within virtual memory (normalized to PART_OF/USES)."
+    },
+    {
+      "from_id": "sparse_routing",
+      "to_id": "sparse_mixture_of_experts",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DAG-010",
+      "reason": "Contradictory cycle: Sparse MoE requires Sparse Routing, not vice versa."
+    },
+    {
+      "from_id": "binary_cross_entropy",
+      "to_id": "reinforcement_learning",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DAG-005",
+      "reason": "Binary cross-entropy is a general loss function and does not require RL."
+    },
+    {
+      "from_id": "kl_divergence",
+      "to_id": "direct_preference_optimization",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DAG-001",
+      "reason": "Inverted prerequisite: DPO requires KL Divergence, not vice versa."
+    },
+    {
+      "from_id": "gae",
+      "to_id": "direct_preference_optimization",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DAG-002",
+      "reason": "Invalid prerequisite: Generalized Advantage Estimation does not require DPO."
+    },
+    {
+      "from_id": "paged_attention",
+      "to_id": "paging",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-BRIDGE-001",
+      "reason": "Re-typed to paged_attention USES paging (interdisciplinary inspiration/mechanism)."
+    },
+    {
+      "from_id": "neural_network",
+      "to_id": "probability_distribution",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-010",
+      "reason": "Inverted pedagogical direction; probability distributions precede neural networks."
+    },
+    {
+      "from_id": "graph_convolutional_network",
+      "to_id": "neural_network",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-010",
+      "reason": "Inverted dependency: Neural Network enables GCN, not vice versa."
+    },
+    {
+      "from_id": "transformer",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'transformer/autonomous_system'."
+    },
+    {
+      "from_id": "transformer",
+      "to_id": "self_attention",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DAG-007",
+      "reason": "Inverted dependency: Self-Attention enables Transformer, not vice versa."
+    },
+    {
+      "from_id": "attention_mechanism",
+      "to_id": "neural_network",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-012",
+      "reason": "Inverted dependency: Neural Networks enable Attention Mechanisms, not vice versa."
+    },
+    {
+      "from_id": "word_embeddings",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'word_embeddings/autonomous_system'."
+    },
+    {
+      "from_id": "chain_of_thought_prompting",
+      "to_id": "variable_compute_only",
+      "relation": "ENABLES",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "chain_of_thought_prompting",
+      "to_id": "equation_only",
+      "relation": "ENABLES",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "large_language_model",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'large_language_model/autonomous_system'."
+    },
+    {
+      "from_id": "gpt",
+      "to_id": "direct_preference_optimization",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-011",
+      "reason": "Specific model family GPT does not define a hard prerequisite for DPO."
+    },
+    {
+      "from_id": "gpt",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "triviaqa",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "triviaqa",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "gpt_4",
+      "to_id": "direct_preference_optimization",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-011",
+      "reason": "GPT-4 is an evaluation judge in the DPO paper, not a prerequisite for DPO."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "reasoning_over_context",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "retrieval",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "large_language_model_serving",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "longer_context",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "generative_adversarial_network",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "global_sensemaking",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "feature_based_approach",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "gpt_2",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "large_language_model",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "language_model",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "long_short_term_memory",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "knowledge_graph",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "deep_learning",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "system_evaluation",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'system_evaluation/autonomous_system'."
+    },
+    {
+      "from_id": "adversarial_nets",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'adversarial_nets/autonomous_system'."
+    },
+    {
+      "from_id": "adversarial_nets",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "variational_inference",
+      "to_id": "bayesian_inference",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DAG-012",
+      "reason": "Inverted unlock: Bayesian inference precedes variational inference."
+    },
+    {
+      "from_id": "adapter_layers",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'adapter_layers/autonomous_system'."
+    },
+    {
+      "from_id": "vector_embeddings",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "natural_questions",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "natural_questions",
+      "to_id": "retrieval_augmented_generation",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "sgvb",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'sgvb/autonomous_system'."
+    },
+    {
+      "from_id": "attention_layer",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'attention_layer/autonomous_system'."
+    },
+    {
+      "from_id": "sequence",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'sequence/autonomous_system'."
+    },
+    {
+      "from_id": "document_index",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'document_index/autonomous_system'."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "large_language_model_serving",
+      "relation": "ENABLES",
+      "defect_ref": "D10-S4-RAG",
+      "reason": "Unverified RAG prerequisite/unlock edge quarantined per D10_S4."
+    },
+    {
+      "from_id": "direct_preference_optimization",
+      "to_id": "bradley_terry_preference_model",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DAG-003",
+      "reason": "Contradictory unlock: DPO requires Bradley-Terry preference model, not unlocks it."
+    },
+    {
+      "from_id": "direct_preference_optimization",
+      "to_id": "reinforcement_learning",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-011",
+      "reason": "DPO does not unlock Reinforcement Learning; DPO contrasts with RLHF/RL."
+    },
+    {
+      "from_id": "instruction_tuning",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'instruction_tuning/autonomous_system'."
+    },
+    {
+      "from_id": "direct_preference_optimization",
+      "to_id": "reinforcement_learning",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-011",
+      "reason": "DPO does not unlock Reinforcement Learning; DPO contrasts with RLHF/RL."
+    },
+    {
+      "from_id": "palm_reasoning_evaluation",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'palm_reasoning_evaluation/autonomous_system'."
+    },
+    {
+      "from_id": "regular_expression",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Spurious lexical-collision edge connecting formal languages to autonomous systems."
+    },
+    {
+      "from_id": "partial_regular_expression",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Spurious lexical-collision edge connecting formal languages to autonomous systems."
+    },
+    {
+      "from_id": "autonomous_system",
+      "to_id": "neighborhood",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'autonomous_system/neighborhood'."
+    },
+    {
+      "from_id": "autonomous_system",
+      "to_id": "loss_function",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'autonomous_system/loss_function'."
+    },
+    {
+      "from_id": "context",
+      "to_id": "autonomous_system",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-013",
+      "reason": "Quarantined spurious prerequisite/unlock on noise hub 'context/autonomous_system'."
+    },
+    {
+      "from_id": "long_context_transformer",
+      "to_id": "self_attention",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DAG-008",
+      "reason": "Contradictory unlock: Long-Context Transformer requires Self-Attention."
+    },
+    {
+      "from_id": "token_dropping",
+      "to_id": "transformer",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DAG-009",
+      "reason": "Contradictory unlock: Token Dropping requires Transformer."
+    },
+    {
+      "from_id": "binary_cross_entropy",
+      "to_id": "reinforcement_learning",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DAG-005",
+      "reason": "Contradictory unlock between binary cross-entropy and RL."
+    },
+    {
+      "from_id": "kl_divergence",
+      "to_id": "direct_preference_optimization",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DAG-001",
+      "reason": "Normalized to direct_preference_optimization REQUIRES kl_divergence."
+    },
+    {
+      "from_id": "gae",
+      "to_id": "direct_preference_optimization",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DAG-002",
+      "reason": "Invalid unlock: GAE does not unlock DPO."
+    },
+    {
+      "from_id": "paging",
+      "to_id": "paged_attention",
+      "relation": "ENABLES",
+      "defect_ref": "D14-BRIDGE-001",
+      "reason": "Re-typed to paged_attention USES paging (interdisciplinary link, not hard prerequisite)."
+    },
+    {
+      "from_id": "b_plus_tree",
+      "to_id": "clustered_index",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-017",
+      "reason": "Re-typed to clustered_index USES b_plus_tree; not a mandatory prerequisite."
+    },
+    {
+      "from_id": "deep_learning",
+      "to_id": "equation_only",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "tcp",
+      "to_id": "constitutional_principle",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-DEF-018",
+      "reason": "Cross-domain contamination edge linking TCP to AI Constitutional Principle."
+    },
+    {
+      "from_id": "tcp",
+      "to_id": "flow_feature_name_description",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "dynamic_graph",
+      "to_id": "equation_only",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "web_traffic",
+      "to_id": "principal_component_analysis",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-DEF-015",
+      "reason": "Spurious book-index co-mention noise between Web Traffic and PCA."
+    },
+    {
+      "from_id": "chain_of_thought_prompting",
+      "to_id": "equation_only",
+      "relation": "CONTRASTS_WITH",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "retrieval_augmented_generation",
+      "to_id": "rag",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "adversarial_neural_network",
+      "to_id": "equation_only",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "maximum_likelihood_estimation",
+      "to_id": "maximum_likelihood",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "probability",
+      "to_id": "inheritance_hierarchy",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-DEF-014",
+      "reason": "Cross-domain co-mention noise between Probability and OOP Inheritance Hierarchy."
+    },
+    {
+      "from_id": "sequence",
+      "to_id": "equation_only",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "direct_preference_optimization",
+      "to_id": "inheritance_hierarchy",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-DEF-014",
+      "reason": "Cross-domain co-mention noise between DPO and OOP Inheritance Hierarchy."
+    },
+    {
+      "from_id": "equation_only",
+      "to_id": "data_visualization",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "memory_efficient",
+      "to_id": "flashattention",
+      "relation": "USES",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    },
+    {
+      "from_id": "fast",
+      "to_id": "memory_efficient",
+      "relation": "USES",
+      "defect_ref": "D14-HYGIENE",
+      "reason": "Endpoint removed as artifact or collapsed to self-loop after merge."
+    }
+  ],
+  "added_edges": [
+    {
+      "from_id": "singular_value_decomposition",
+      "to_id": "linear_algebra",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-003",
+      "source": "Deisenroth et al. (2020) Ch. 4.5: SVD builds on linear algebra.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "singular_value_decomposition",
+      "to_id": "eigenvalues_and_eigenvectors",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-003",
+      "source": "Deisenroth et al. (2020) Ch. 4.5: singular values derive from A^T A.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "eigendecomposition",
+      "to_id": "eigenvalues_and_eigenvectors",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-003",
+      "source": "Deisenroth et al. (2020) Ch. 4.4.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "principal_component_analysis",
+      "to_id": "singular_value_decomposition",
+      "relation": "USES",
+      "defect_ref": "D14-DEF-003",
+      "source": "Deisenroth et al. (2020) Ch. 10: PCA computed via SVD.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "principal_component_analysis",
+      "to_id": "eigendecomposition",
+      "relation": "USES",
+      "defect_ref": "D14-DEF-015",
+      "source": "Deisenroth et al. (2020) Ch. 10: PCA diagonalizes covariance.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "attention_mechanism",
+      "to_id": "neural_network",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-012",
+      "source": "Bahdanau (2014); Vaswani (2017): attention over neural hidden states.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "neural_network",
+      "to_id": "attention_mechanism",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-012",
+      "source": "Neural representations enable parameterized attention mechanisms.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "transformer",
+      "to_id": "self_attention",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DAG-007",
+      "source": "Vaswani et al. (2017): Transformer built from multi-head self-attention.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "graph_attention_network",
+      "to_id": "attention_mechanism",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-004",
+      "source": "Velickovic et al. (2018) GAT Sec. 2.1: masked self-attention on graphs.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "graph_attention_network",
+      "to_id": "graph_convolutional_network",
+      "relation": "CONTRASTS_WITH",
+      "defect_ref": "D14-DEF-004",
+      "source": "Velickovic et al. (2018): learned attention vs. fixed GCN normalization.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "graph_convolutional_network",
+      "to_id": "neural_network",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-010",
+      "source": "Kipf & Welling (2017): GCN extends neural layers to graph data.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "direct_preference_optimization",
+      "to_id": "kl_divergence",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-011",
+      "source": "Rafailov et al. (2023) Eq. 4-7: KL-constrained closed-form policy.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "direct_preference_optimization",
+      "to_id": "reinforcement_learning",
+      "relation": "CONTRASTS_WITH",
+      "defect_ref": "D14-DEF-011",
+      "source": "Rafailov et al. (2023): DPO avoids explicit RL/PPO optimization loops.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "direct_preference_optimization",
+      "to_id": "rlhf",
+      "relation": "CONTRASTS_WITH",
+      "defect_ref": "D14-DEF-011",
+      "source": "Rafailov et al. (2023): reward-model-free alternative to RLHF.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "denoising_diffusion_probabilistic_models",
+      "to_id": "variational_inference",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-007",
+      "source": "Ho et al. (2020) Sec. 2: objective derives from variational bound.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "denoising_diffusion_probabilistic_models",
+      "to_id": "diffusion_model",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-007",
+      "source": "Ho et al. (2020): discrete-time diffusion probabilistic model.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "denoising_diffusion_probabilistic_models",
+      "to_id": "variational_autoencoder",
+      "relation": "CONTRASTS_WITH",
+      "defect_ref": "D14-DEF-007",
+      "source": "Ho et al. (2020): fixed Markov forward process vs. learned VAE encoders.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "kl_divergence",
+      "to_id": "probability_distribution",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-005",
+      "source": "Cover & Thomas Ch. 2: directed divergence between two distributions.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "variational_inference",
+      "to_id": "kl_divergence",
+      "relation": "USES",
+      "defect_ref": "D14-DEF-005",
+      "source": "Blei et al. (2017): minimizes KL(q || p) via the ELBO.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "variational_inference",
+      "to_id": "bayes_theorem",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-005",
+      "source": "Blei et al. (2017): approximates intractable Bayesian posteriors.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "maximum_likelihood_estimation",
+      "to_id": "probability_distribution",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-010",
+      "source": "Deisenroth et al. (2020) Ch. 9: maximizes likelihood under distribution.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "lalr",
+      "to_id": "bottom_up_parsing",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-006",
+      "source": "Dragon Book Ch. 4.7: LALR(1) is a bottom-up shift-reduce parser.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "bottom_up_parsing",
+      "to_id": "syntax_analysis",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-006",
+      "source": "Dragon Book Ch. 4: primary syntax-analysis strategy.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "lalr",
+      "to_id": "context_free_grammar",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-006",
+      "source": "Dragon Book Ch. 4.7: LALR tables constructed from LR items of a CFG.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "syntax_analysis",
+      "to_id": "lexical_analysis",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-006",
+      "source": "Dragon Book Ch. 1.2: parser consumes lexer token stream.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "semantic_analysis",
+      "to_id": "syntax_analysis",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-006",
+      "source": "Dragon Book Ch. 1.2: validates types/scopes over parsed AST.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "intermediate_code_generation",
+      "to_id": "semantic_analysis",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-006",
+      "source": "Dragon Book Ch. 1.2: IR generation follows semantic validation.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "deterministic_finite_automaton",
+      "to_id": "finite_automata",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "Sipser Ch. 1.1: deterministic finite-state automaton.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "nondeterministic_finite_automaton",
+      "to_id": "finite_automata",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "Sipser Ch. 1.2: nondeterministic finite-state automaton.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "pumping_lemma",
+      "to_id": "regular_languages",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-009",
+      "source": "Sipser Ch. 1.4: necessary property of regular languages.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "regular_languages",
+      "to_id": "chomsky_hierarchy",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "Sipser: Type-3 of Chomsky hierarchy.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "context_free_languages",
+      "to_id": "chomsky_hierarchy",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "Sipser: Type-2 of Chomsky hierarchy.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "context_free_languages",
+      "to_id": "context_free_grammar",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-009",
+      "source": "Sipser Ch. 2.1: CFLs generated by context-free grammars.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "data_link_layer",
+      "to_id": "bit_transmission",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-016",
+      "source": "Tanenbaum / Kurose-Ross: L2 Data Link builds on L1 bit transmission.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "bit_transmission",
+      "to_id": "data_link_layer",
+      "relation": "ENABLES",
+      "defect_ref": "D14-DEF-016",
+      "source": "L1 Physical bit transmission enables L2 Data Link framing.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "network_layer",
+      "to_id": "data_link_layer",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-016",
+      "source": "OSI/TCP-IP: L3 Network routing relies on L2 frame delivery.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "packet_switching",
+      "to_id": "network_layer",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-016",
+      "source": "Kurose & Ross Ch. 4: core forwarding paradigm at network layer.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "tcp",
+      "to_id": "network_layer",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-018",
+      "source": "RFC 9293: TCP transport operates over IP network-layer datagrams.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "clustered_index",
+      "to_id": "b_plus_tree",
+      "relation": "USES",
+      "defect_ref": "D14-DEF-017",
+      "source": "Ramakrishnan & Gehrke Ch. 10: clustered indexes commonly use B+ trees.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "paging",
+      "to_id": "address_translation",
+      "relation": "PART_OF",
+      "defect_ref": "D14-BRIDGE-001",
+      "source": "OSTEP Ch. 18: fixed-size address-translation mechanism.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "paging",
+      "to_id": "virtual_memory",
+      "relation": "PART_OF",
+      "defect_ref": "D14-BRIDGE-001",
+      "source": "OSTEP Ch. 18: implements virtual memory without external fragmentation.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "page_table",
+      "to_id": "paging",
+      "relation": "USES",
+      "defect_ref": "D14-DEF-008",
+      "source": "OSTEP Ch. 18: stores VPN-to-PFN translations for paging.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "translation_lookaside_buffer",
+      "to_id": "page_table",
+      "relation": "USES",
+      "defect_ref": "D14-DEF-008",
+      "source": "OSTEP Ch. 19: hardware cache for page-table translations.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "base_and_bounds",
+      "to_id": "address_translation",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-008",
+      "source": "OSTEP Ch. 15: dynamic hardware address-translation scheme.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "paged_attention",
+      "to_id": "paging",
+      "relation": "USES",
+      "defect_ref": "D14-BRIDGE-001",
+      "source": "Kwon et al. (2023) vLLM: adapts OS paging to KV-cache blocks.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "paged_attention",
+      "to_id": "virtual_memory",
+      "relation": "RELATED_TO",
+      "defect_ref": "D14-BRIDGE-001",
+      "source": "Kwon et al. (2023) vLLM: inspired by OS virtual memory.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "dijkstras_algorithm",
+      "to_id": "priority_queue_mechanics",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-009",
+      "source": "CLRS Ch. 24.3: min-priority queue for O((V+E) log V) relaxation.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "rsa_cryptosystem",
+      "to_id": "modular_arithmetic",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-009",
+      "source": "RFC 8017: modular exponentiation and Euler's theorem.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "rsa_cryptosystem",
+      "to_id": "public_key_cryptography",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "Katz & Lindell: canonical public-key cryptosystem.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "tls_protocol",
+      "to_id": "public_key_cryptography",
+      "relation": "USES",
+      "defect_ref": "D14-DEF-009",
+      "source": "RFC 8446: authentication and key establishment.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "tls_protocol",
+      "to_id": "symmetric_key_cryptography",
+      "relation": "USES",
+      "defect_ref": "D14-DEF-009",
+      "source": "RFC 8446: AEAD symmetric ciphers for bulk confidentiality.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "tls_protocol",
+      "to_id": "cryptographic_hash_function",
+      "relation": "USES",
+      "defect_ref": "D14-DEF-009",
+      "source": "RFC 8446: SHA-256/SHA-384 transcript hashing and HKDF.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "tls_protocol",
+      "to_id": "tcp",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-009",
+      "source": "RFC 8446: TLS operates over reliable ordered transport stream.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "software_development_lifecycle",
+      "to_id": "software_engineering",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "IEEE SWEBOK v4: SDLC structures software engineering execution.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "solid_principles",
+      "to_id": "software_engineering",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "Martin (2000): modular object-oriented software design principles.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "unit_testing",
+      "to_id": "software_engineering",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "IEEE SWEBOK v4: verifies individual software modules.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "design_patterns",
+      "to_id": "software_engineering",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "Gamma et al. (1994): reusable design patterns in software engineering.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "continuous_integration",
+      "to_id": "unit_testing",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-009",
+      "source": "Fowler (2006): CI relies on automated unit tests.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "continuous_integration",
+      "to_id": "version_control",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-009",
+      "source": "Fowler (2006): CI requires a shared version control repository.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "instruction_set_architecture",
+      "to_id": "cpu_architecture",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "Patterson & Hennessy Ch. 2: programmer-visible CPU interface.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "instruction_pipelining",
+      "to_id": "instruction_cycle",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-009",
+      "source": "Patterson & Hennessy Ch. 4: overlaps stages of instruction cycle.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "instruction_pipelining",
+      "to_id": "cpu_architecture",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "Patterson & Hennessy Ch. 4: core CPU microarchitecture technique.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "pipeline_hazards",
+      "to_id": "instruction_pipelining",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-009",
+      "source": "Patterson & Hennessy Ch. 4.5: hazards arise in pipelined execution.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "branch_prediction",
+      "to_id": "pipeline_hazards",
+      "relation": "USES",
+      "defect_ref": "D14-DEF-009",
+      "source": "Patterson & Hennessy Ch. 4.8: mitigates control hazards in pipelines.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "cache_memory",
+      "to_id": "memory_hierarchy",
+      "relation": "PART_OF",
+      "defect_ref": "D14-DEF-009",
+      "source": "Patterson & Hennessy Ch. 5: SRAM caches between registers and DRAM.",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "from_id": "cache_coherence",
+      "to_id": "cache_memory",
+      "relation": "REQUIRES",
+      "defect_ref": "D14-DEF-009",
+      "source": "Hennessy & Patterson Ch. 5: consistency across private CPU caches.",
+      "review_status": "PENDING_REVIEW"
+    }
+  ],
+  "cycle_breaks": [
+    {
+      "from_id": "adversarial_nets",
+      "to_id": "neural_network",
+      "relation": "ENABLES",
+      "reason": "Demoted/removed to guarantee strict DAG acyclicity on prerequisite edges."
+    }
+  ]
+}

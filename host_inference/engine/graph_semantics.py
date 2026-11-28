@@ -1,8 +1,42 @@
-"""Candidate-only corrections for known graph extraction defects."""
+"""Candidate-only corrections, typed edge ontology, and version selection for OKF graphs."""
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from typing import Any
+
+GRAPH_V1_ID = "graph_v1_okf610"
+GRAPH_V2_ID = "graph_v2_d14"
+GRAPH_V1_FILENAME = "okf_graph.json"
+GRAPH_V2_FILENAME = "okf_graph_v2_d14.json"
+ENV_GRAPH_PATH = "ARCHIPELAGO_GRAPH_PATH"
+ENV_GRAPH_VERSION = "ARCHIPELAGO_GRAPH_VERSION"
+
+PREREQ_OUT_KINDS: frozenset[str] = frozenset({"REQUIRES"})
+PREREQ_IN_KINDS: frozenset[str] = frozenset({"UNLOCKS", "ENABLES"})
+ASSOCIATIVE_KINDS: frozenset[str] = frozenset(
+    {"RELATED", "RELATED_TO", "USES", "PART_OF", "CONTRASTS_WITH"}
+)
+
+
+def resolve_graph_path(path: Path, *, allow_env_override: bool = True) -> Path:
+    """Resolve graph JSON path honoring env overrides without breaking v1 reproducibility."""
+    if not allow_env_override or path.name != GRAPH_V1_FILENAME:
+        return path
+    env_path = os.environ.get(ENV_GRAPH_PATH, "").strip()
+    if env_path:
+        return Path(env_path)
+    env_version = os.environ.get(ENV_GRAPH_VERSION, "").strip().lower()
+    if env_version in {GRAPH_V2_ID, "v2_d14", "v2"}:
+        candidate = path.parent / GRAPH_V2_FILENAME
+        if candidate.is_file():
+            return candidate
+        fixtures_candidate = Path(__file__).resolve().parents[1] / "fixtures" / GRAPH_V2_FILENAME
+        if fixtures_candidate.is_file():
+            return fixtures_candidate
+    return path
+
 
 RAG_CONCEPTS = frozenset({"rag", "retrieval_augmented_generation"})
 SUPPORTED_RAG_DEPENDENCIES = frozenset(

@@ -39,7 +39,9 @@ SEARCH_ALGORITHM = "Dijkstra_from_target_skipping_mastered"
 
 #: Relations that express a study dependency. RELATED is not a dependency: a node
 #: merely co-mentioned with the target is not something you must learn first.
-DEPENDENCY_RELATIONS = frozenset({"REQUIRES", "UNLOCKS", "inv-REQUIRES", "inv-UNLOCKS"})
+DEPENDENCY_RELATIONS = frozenset(
+    {"REQUIRES", "UNLOCKS", "ENABLES", "inv-REQUIRES", "inv-UNLOCKS", "inv-ENABLES"}
+)
 
 
 def _dependency_neighbours(graph, cid: str) -> list[str]:
@@ -49,7 +51,7 @@ def _dependency_neighbours(graph, cid: str) -> list[str]:
         if kind == "REQUIRES" and nxt in graph.nodes and nxt not in hops:
             hops.append(nxt)
     for kind, nxt in graph.inn.get(cid, []):
-        if kind == "UNLOCKS" and nxt in graph.nodes and nxt not in hops:
+        if kind in {"UNLOCKS", "ENABLES"} and nxt in graph.nodes and nxt not in hops:
             hops.append(nxt)
     return hops
 

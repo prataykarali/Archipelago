@@ -1,0 +1,742 @@
+canonical_id,canonical_label,alias,domain,review_status
+2d_discrete_convolution,2D Discrete Convolution,2d discrete convolution,Operating Systems,PENDING_REVIEW
+abstract_syntax_tree,Abstract Syntax Tree,abstract syntax tree,General Computer Science,PENDING_REVIEW
+acid_properties,ACID Properties,acid,Database Systems,PENDING_REVIEW
+acid_properties,ACID Properties,acid properties,Database Systems,PENDING_REVIEW
+acid_properties,ACID Properties,acid transactions,Database Systems,PENDING_REVIEW
+act,Act,act,General Computer Science,PENDING_REVIEW
+action,Action,action,General Computer Science,PENDING_REVIEW
+action_planning,Action Planning,action planning,General Computer Science,PENDING_REVIEW
+actor_critic_method,Actor-Critic Method,actor-critic method,General Computer Science,PENDING_REVIEW
+adaline,Adaline,adaline,AI & Machine Learning,PENDING_REVIEW
+adapter,Adapter,adapter,AI & Machine Learning,PENDING_REVIEW
+adapter_layers,Adapter Layers,adapter layers,AI & Machine Learning,PENDING_REVIEW
+adaptive_optimizers,Adaptive Optimizers,adaptive optimizers,General Computer Science,PENDING_REVIEW
+additive_increase_multiplicative_decrease,Additive Increase Multiplicative Decrease,additive increase multiplicative decrease,Computer Networks,PENDING_REVIEW
+address_translation,Address Translation,address translation,Operating Systems,PENDING_REVIEW
+advanced_rag,Advanced RAG,advanced rag,AI & Machine Learning,PENDING_REVIEW
+adversarial_modeling,Adversarial Modeling,adversarial modeling,Information Security,PENDING_REVIEW
+adversarial_nets,Adversarial Nets,adversarial nets,Information Security,PENDING_REVIEW
+adversarial_neural_network,Adversarial Neural Network,adversarial neural network,Information Security,PENDING_REVIEW
+aggregative_method,Aggregative Method,aggregative method,General Computer Science,PENDING_REVIEW
+ai_agent,AI Agent,ai agent,General Computer Science,PENDING_REVIEW
+alignment,Alignment,alignment,General Computer Science,PENDING_REVIEW
+annotator_b,Annotator B,annotator b,General Computer Science,PENDING_REVIEW
+anomaly_detection,Anomaly Detection,anomaly detection,General Computer Science,PENDING_REVIEW
+anomaly_score,Anomaly Score,anomaly score,General Computer Science,PENDING_REVIEW
+area_under_curve,Area under Curve,area under curve,Probability & Statistics,PENDING_REVIEW
+atomic_operations,Atomic Operations,atomic operations,General Computer Science,PENDING_REVIEW
+attention_head,Attention Head,attention head,AI & Machine Learning,PENDING_REVIEW
+attention_layer,Attention Layer,attention layer,AI & Machine Learning,PENDING_REVIEW
+attention_mechanism,Attention Mechanism,attention mechanism,AI & Machine Learning,PENDING_REVIEW
+auto_encoding,Auto-Encoding,auto-encoding,General Computer Science,PENDING_REVIEW
+auto_encoding_variational_inference,Auto-Encoding Variational Inference,auto-encoding variational inference,Probability & Statistics,PENDING_REVIEW
+auto_regressive,Auto-Regressive,auto-regressive,General Computer Science,PENDING_REVIEW
+autoencoder,AutoEncoder,autoencoder,AI & Machine Learning,PENDING_REVIEW
+autonomous_system,Autonomous System,autonomous system,General Computer Science,PENDING_REVIEW
+autoregressive_generation,Autoregressive Generation,autoregressive generation,General Computer Science,PENDING_REVIEW
+b_plus_tree,B+ Tree,b plus tree,Database Systems,PENDING_REVIEW
+b_plus_tree,B+ Tree,b+ tree,Database Systems,PENDING_REVIEW
+b_plus_tree,B+ Tree,b+tree,Database Systems,PENDING_REVIEW
+b_plus_tree,B+ Tree,b-plus tree,Database Systems,PENDING_REVIEW
+b_tree,B Tree,b tree,Database Systems,PENDING_REVIEW
+back_propagation,Back Propagation,back propagation,AI & Machine Learning,PENDING_REVIEW
+balanced_dataset,Balanced Dataset,balanced dataset,General Computer Science,PENDING_REVIEW
+bankers_algorithm,Bankers Algorithm,bankers algorithm,Operating Systems,PENDING_REVIEW
+base_and_bounds,Base-and-Bounds Address Translation,base and bounds,Operating Systems,PENDING_REVIEW
+base_and_bounds,Base-and-Bounds Address Translation,base-and-bounds,Operating Systems,PENDING_REVIEW
+base_and_bounds,Base-and-Bounds Address Translation,dynamic relocation,Operating Systems,PENDING_REVIEW
+batching,Batching,batching,General Computer Science,PENDING_REVIEW
+bayes_theorem,Bayes' Theorem,bayes' theorem,Probability & Statistics,PENDING_REVIEW
+bayesian_inference,Bayesian Inference,bayesian inference,Probability & Statistics,PENDING_REVIEW
+beam_search,Beam Search,beam search,General Computer Science,PENDING_REVIEW
+bellman_equation,Bellman Equation,bellman equation,AI & Machine Learning,PENDING_REVIEW
+bert,BERT,bert,AI & Machine Learning,PENDING_REVIEW
+bfloat16,BFloat16,bfloat16,AI & Machine Learning,PENDING_REVIEW
+bi_directional_recurrent_neural_network,Bi-Directional Recurrent Neural Network,bi-directional recurrent neural network,AI & Machine Learning,PENDING_REVIEW
+bi_directional_rnn,Bi-Directional RNN,bi-directional rnn,AI & Machine Learning,PENDING_REVIEW
+big_model,Big Model,big model,AI & Machine Learning,PENDING_REVIEW
+biggan,BigGAN,biggan,AI & Machine Learning,PENDING_REVIEW
+bilstm,BiLSTM,bilstm,General Computer Science,PENDING_REVIEW
+binary_classification,Binary Classification,binary classification,General Computer Science,PENDING_REVIEW
+binary_cross_entropy,Binary Cross Entropy,binary cross entropy,Probability & Statistics,PENDING_REVIEW
+bit_transmission,Bit Transmission,bit transmission,Computer Networks,PENDING_REVIEW
+block_cipher,Block Cipher,block cipher,Information Security,PENDING_REVIEW
+block_cipher_principles,Block Cipher Principles,block cipher principles,Information Security,PENDING_REVIEW
+bm25,BM25,bm25,AI & Machine Learning,PENDING_REVIEW
+boosting,Boosting,boosting,General Computer Science,PENDING_REVIEW
+bottom_up_parsing,Bottom-Up Parsing,bottom up parsing,Compilers & Languages,PENDING_REVIEW
+bottom_up_parsing,Bottom-Up Parsing,bottom-up parsing,Compilers & Languages,PENDING_REVIEW
+bottom_up_parsing,Bottom-Up Parsing,shift reduce parsing,Compilers & Languages,PENDING_REVIEW
+bottom_up_parsing,Bottom-Up Parsing,shift-reduce parsing,Compilers & Languages,PENDING_REVIEW
+bradley_terry_preference_model,Bradley Terry Preference Model,bradley terry preference model,Probability & Statistics,PENDING_REVIEW
+branch_prediction,Branch Prediction,branch prediction,Computer Architecture,PENDING_REVIEW
+branch_prediction,Branch Prediction,branch predictor,Computer Architecture,PENDING_REVIEW
+breadth_first_search,Breadth-First Search (BFS),breadth-first search (bfs),Information Security,PENDING_REVIEW
+cache_coherence,Cache Coherence,cache coherence,Computer Architecture,PENDING_REVIEW
+cache_coherence,Cache Coherence,coherence protocol,Computer Architecture,PENDING_REVIEW
+cache_coherence,Cache Coherence,mesi protocol,Computer Architecture,PENDING_REVIEW
+cache_memory,CPU Cache Memory,cache memory,Computer Architecture,PENDING_REVIEW
+cache_memory,CPU Cache Memory,cpu cache,Computer Architecture,PENDING_REVIEW
+cache_memory,CPU Cache Memory,l1 cache,Computer Architecture,PENDING_REVIEW
+cache_memory,CPU Cache Memory,set-associative cache,Computer Architecture,PENDING_REVIEW
+categorical_distribution,Categorical Distribution,categorical distribution,Probability & Statistics,PENDING_REVIEW
+cellular_batching,Cellular Batching,cellular batching,General Computer Science,PENDING_REVIEW
+chain_of_thought,Chain of Thought,chain of thought,General Computer Science,PENDING_REVIEW
+chain_of_thought_answering,Chain-of-Thought Answering,chain-of-thought answering,General Computer Science,PENDING_REVIEW
+chain_of_thought_prompting,Chain-of-Thought Prompting,chain-of-thought prompting,AI & Machine Learning,PENDING_REVIEW
+chemical_kinetics,Chemical Kinetics,chemical kinetics,Natural Sciences,PENDING_REVIEW
+chomsky_hierarchy,Chomsky Hierarchy,chomsky hierarchy,Automata & Computation,PENDING_REVIEW
+cic_ids_2017,Cic-Ids 2017,cic-ids 2017,General Computer Science,PENDING_REVIEW
+cifar_100,Cifar-100,cifar-100,General Computer Science,PENDING_REVIEW
+claim,Claim,claim,General Computer Science,PENDING_REVIEW
+closed_domain_qa,Closed-Domain QA,closed-domain qa,General Computer Science,PENDING_REVIEW
+clustered_index,Clustered Index,clustered index,Database Systems,PENDING_REVIEW
+clustering,Clustering,clustering,AI & Machine Learning,PENDING_REVIEW
+community,Community,community,General Computer Science,PENDING_REVIEW
+community_detection,Community Detection,community detection,General Computer Science,PENDING_REVIEW
+community_summary,Community Summary,community summary,General Computer Science,PENDING_REVIEW
+community_summary_template,Community Summary Template,community summary template,General Computer Science,PENDING_REVIEW
+computability_theory,Computability Theory,computability theory,Automata & Computation,PENDING_REVIEW
+concurrency,Concurrency,concurrency,General Computer Science,PENDING_REVIEW
+concurrency_control,Concurrency Control,concurrency control,Database Systems,PENDING_REVIEW
+condition_variable,Condition Variable,condition variable,Operating Systems,PENDING_REVIEW
+conditional_probability,Conditional Probability,conditional probability,Probability & Statistics,PENDING_REVIEW
+conflict_set,Conflict Set,conflict set,General Computer Science,PENDING_REVIEW
+constitutional_ai,Constitutional AI,constitutional ai,General Computer Science,PENDING_REVIEW
+constitutional_principle,Constitutional Principle,constitutional principle,General Computer Science,PENDING_REVIEW
+context,Context,context,General Computer Science,PENDING_REVIEW
+context_free_grammar,Context-Free Grammar (CFG),cfg,Automata & Computation,PENDING_REVIEW
+context_free_grammar,Context-Free Grammar (CFG),context free grammar,Automata & Computation,PENDING_REVIEW
+context_free_grammar,Context-Free Grammar (CFG),context free grammars,Automata & Computation,PENDING_REVIEW
+context_free_grammar,Context-Free Grammar (CFG),context-free grammar,Automata & Computation,PENDING_REVIEW
+context_free_languages,Context-Free Languages,cfl,Automata & Computation,PENDING_REVIEW
+context_free_languages,Context-Free Languages,context free language,Automata & Computation,PENDING_REVIEW
+context_free_languages,Context-Free Languages,context-free language,Automata & Computation,PENDING_REVIEW
+context_free_languages,Context-Free Languages,context-free languages,Automata & Computation,PENDING_REVIEW
+context_switch,Context Switch,context switch,General Computer Science,PENDING_REVIEW
+continuous_integration,Continuous Integration (CI),ci,Software Engineering,PENDING_REVIEW
+continuous_integration,Continuous Integration (CI),ci/cd,Software Engineering,PENDING_REVIEW
+continuous_integration,Continuous Integration (CI),continuous integration,Software Engineering,PENDING_REVIEW
+convolution,Convolution,convolution,Mathematics for Computing,PENDING_REVIEW
+cora,Cora,cora,General Computer Science,PENDING_REVIEW
+cot_sc,CoT-SC,cot-sc,General Computer Science,PENDING_REVIEW
+cpu_architecture,CPU Architecture,computer architecture,Computer Architecture,PENDING_REVIEW
+cpu_architecture,CPU Architecture,cpu architecture,Computer Architecture,PENDING_REVIEW
+cpu_architecture,CPU Architecture,processor architecture,Computer Architecture,PENDING_REVIEW
+cpu_scheduling,CPU Scheduling,cpu scheduling,Operating Systems,PENDING_REVIEW
+critical_section,Critical Section,critical section,Operating Systems,PENDING_REVIEW
+critiqued_revision,Critiqued Revision,critiqued revision,General Computer Science,PENDING_REVIEW
+cryptographic_hash_function,Cryptographic Hash Function,cryptographic hash,Information Security,PENDING_REVIEW
+cryptographic_hash_function,Cryptographic Hash Function,hash function,Information Security,PENDING_REVIEW
+cryptographic_hash_function,Cryptographic Hash Function,message digest,Information Security,PENDING_REVIEW
+cryptographic_hash_function,Cryptographic Hash Function,sha-256,Information Security,PENDING_REVIEW
+cse_cic_ids_2018,Cse-Cic-Ids 2018,cse-cic-ids 2018,General Computer Science,PENDING_REVIEW
+d_magic,D-Magic,d-magic,General Computer Science,PENDING_REVIEW
+data,Data,data,General Computer Science,PENDING_REVIEW
+data_augmentation,Data Augmentation,data augmentation,General Computer Science,PENDING_REVIEW
+data_link_layer,Data Link Layer,data link layer,Computer Networks,PENDING_REVIEW
+data_mining,Data Mining,data mining,General Computer Science,PENDING_REVIEW
+data_preparation,Data Preparation,data preparation,General Computer Science,PENDING_REVIEW
+data_visualization,Data Visualization,data visualization,General Computer Science,PENDING_REVIEW
+database_transaction,Database Transaction,database transaction,Database Systems,PENDING_REVIEW
+deadlock,Deadlock,deadlock,Operating Systems,PENDING_REVIEW
+deadlock_prevention,Deadlock Prevention,deadlock prevention,Operating Systems,PENDING_REVIEW
+decidability,Decidability,decidability,Automata & Computation,PENDING_REVIEW
+decision_tree,Decision Tree,decision tree,General Computer Science,PENDING_REVIEW
+decoder,Decoder,decoder,General Computer Science,PENDING_REVIEW
+deep_att,Deep-Att,deep-att,AI & Machine Learning,PENDING_REVIEW
+deep_auto_encoder,Deep Auto-Encoder,deep auto-encoder,General Computer Science,PENDING_REVIEW
+deep_convolutional_neural_network,Deep Convolutional Neural Network,deep convolutional neural network,Mathematics for Computing,PENDING_REVIEW
+deep_feature_synthesis,Deep Feature Synthesis,deep feature synthesis,AI & Machine Learning,PENDING_REVIEW
+deep_graph_infomax,Deep Graph Infomax,deep graph infomax,AI & Machine Learning,PENDING_REVIEW
+deep_learning,Deep Learning,deep learning,Mathematics for Computing,PENDING_REVIEW
+deep_modularity_networks,Deep Modularity Networks,deep modularity networks,General Computer Science,PENDING_REVIEW
+deep_reasoning_with_llms,Deep Reasoning with LLMs,deep reasoning with llms,AI & Machine Learning,PENDING_REVIEW
+deep_semi_supervised_embedding,Deep Semi-Supervised Embedding,deep semi-supervised embedding,Operating Systems,PENDING_REVIEW
+deep_temporal_clustering_representation,Deep Temporal Clustering Representation,deep temporal clustering representation,General Computer Science,PENDING_REVIEW
+deep_unsupervised_anomaly_detection,Deep Unsupervised Anomaly Detection,deep unsupervised anomaly detection,AI & Machine Learning,PENDING_REVIEW
+deepwalk,DeepWalk,deepwalk,General Computer Science,PENDING_REVIEW
+default_logic,Default Logic,default logic,General Computer Science,PENDING_REVIEW
+demand_paging,Demand Paging,demand paging,Operating Systems,PENDING_REVIEW
+denoising_diffusion_probabilistic_models,Denoising Diffusion Probabilistic Models (DDPM),ddpm,AI & Machine Learning,PENDING_REVIEW
+denoising_diffusion_probabilistic_models,Denoising Diffusion Probabilistic Models (DDPM),ddpms,AI & Machine Learning,PENDING_REVIEW
+denoising_diffusion_probabilistic_models,Denoising Diffusion Probabilistic Models (DDPM),denoising diffusion probabilistic model,AI & Machine Learning,PENDING_REVIEW
+denoising_diffusion_probabilistic_models,Denoising Diffusion Probabilistic Models (DDPM),denoising diffusion probabilistic models,AI & Machine Learning,PENDING_REVIEW
+dense_passage_retriever,Dense Passage Retriever,dense passage retriever,General Computer Science,PENDING_REVIEW
+depth_first_search,Depth-First Search (DFS),depth-first search (dfs),Information Security,PENDING_REVIEW
+design_patterns,Software Design Patterns,design pattern,Software Engineering,PENDING_REVIEW
+design_patterns,Software Design Patterns,design patterns,Software Engineering,PENDING_REVIEW
+design_patterns,Software Design Patterns,gof patterns,Software Engineering,PENDING_REVIEW
+determinant,Determinant,determinant,Mathematics for Computing,PENDING_REVIEW
+deterministic_finite_automaton,Deterministic Finite Automaton (DFA),deterministic finite automata,Automata & Computation,PENDING_REVIEW
+deterministic_finite_automaton,Deterministic Finite Automaton (DFA),deterministic finite automaton,Automata & Computation,PENDING_REVIEW
+deterministic_finite_automaton,Deterministic Finite Automaton (DFA),dfa,Automata & Computation,PENDING_REVIEW
+dialogue_alignment,Dialogue Alignment,dialogue alignment,Information Security,PENDING_REVIEW
+diffusion_model,Diffusion Model,diffusion model,AI & Machine Learning,PENDING_REVIEW
+diffusion_probabilistic_model,Diffusion Probabilistic Model,diffusion probabilistic model,Probability & Statistics,PENDING_REVIEW
+diffusion_probability_distribution,Diffusion Probability Distribution,diffusion probability distribution,Probability & Statistics,PENDING_REVIEW
+diffusion_process,Diffusion Process,diffusion process,AI & Machine Learning,PENDING_REVIEW
+digital_logic_gates,Digital Logic Gates,digital logic gates,Computer Architecture,PENDING_REVIEW
+dijkstras_algorithm,Dijkstra's Shortest-Path Algorithm,dijkstra,Data Structures & Algorithms,PENDING_REVIEW
+dijkstras_algorithm,Dijkstra's Shortest-Path Algorithm,dijkstra shortest path,Data Structures & Algorithms,PENDING_REVIEW
+dijkstras_algorithm,Dijkstra's Shortest-Path Algorithm,dijkstra's algorithm,Data Structures & Algorithms,PENDING_REVIEW
+dijkstras_algorithm,Dijkstra's Shortest-Path Algorithm,dijkstras algorithm,Data Structures & Algorithms,PENDING_REVIEW
+dimensionality_reduction,Dimensionality Reduction,dimensionality reduction,Computer Networks,PENDING_REVIEW
+direct_preference_optimization,Direct Preference Optimization (DPO),direct preference optimization,AI & Machine Learning,PENDING_REVIEW
+direct_preference_optimization,Direct Preference Optimization (DPO),dpo,AI & Machine Learning,PENDING_REVIEW
+direct_revision,Direct Revision,direct revision,General Computer Science,PENDING_REVIEW
+discrete_fourier_transform,Discrete Fourier Transform,discrete fourier transform,General Computer Science,PENDING_REVIEW
+discrete_time_signals,Discrete Time Signals,discrete time signals,Mathematics for Computing,PENDING_REVIEW
+discretization,Discretization,discretization,General Computer Science,PENDING_REVIEW
+divide_and_conquer,Divide And Conquer,divide and conquer,Data Structures & Algorithms,PENDING_REVIEW
+document_index,Document Index,document index,General Computer Science,PENDING_REVIEW
+domain_constraints,Domain Constraints,domain constraints,General Computer Science,PENDING_REVIEW
+domain_specific_language_model,Domain-Specific Language Model,domain-specific language model,AI & Machine Learning,PENDING_REVIEW
+dos,DoS,dos,General Computer Science,PENDING_REVIEW
+dpr,DPR,dpr,AI & Machine Learning,PENDING_REVIEW
+dynamic_clustering,Dynamic Clustering,dynamic clustering,AI & Machine Learning,PENDING_REVIEW
+dynamic_graph,Dynamic Graph,dynamic graph,General Computer Science,PENDING_REVIEW
+dynamic_programming,Dynamic Programming,dynamic programming,Data Structures & Algorithms,PENDING_REVIEW
+e_cls,E[Cls],e[cls],General Computer Science,PENDING_REVIEW
+e_sep,E[Sep],e[sep],AI & Machine Learning,PENDING_REVIEW
+eckart_young_mirsky_theorem,Eckart-Young-Mirsky Theorem,eckart-young-mirsky theorem,Mathematics for Computing,PENDING_REVIEW
+eda,EDA,eda,AI & Machine Learning,PENDING_REVIEW
+edge_representation,Edge Representation,edge representation,General Computer Science,PENDING_REVIEW
+efficient_decoding,Efficient Decoding,efficient decoding,General Computer Science,PENDING_REVIEW
+efficient_model,Efficient Model,efficient model,AI & Machine Learning,PENDING_REVIEW
+efficient_text_generation,Efficient Text Generation,efficient text generation,AI & Machine Learning,PENDING_REVIEW
+eigendecomposition,Eigendecomposition,eigen decomposition,Mathematics for Computing,PENDING_REVIEW
+eigendecomposition,Eigendecomposition,eigendecomposition,Mathematics for Computing,PENDING_REVIEW
+eigendecomposition,Eigendecomposition,spectral decomposition,Mathematics for Computing,PENDING_REVIEW
+eigenvalue,Eigenvalue,eigenvalue,Mathematics for Computing,PENDING_REVIEW
+eigenvalues_and_eigenvectors,Eigenvalues And Eigenvectors,eigenvalues and eigenvectors,Mathematics for Computing,PENDING_REVIEW
+eigenvector,Eigenvector,eigenvector,Mathematics for Computing,PENDING_REVIEW
+element_extraction,Element Extraction,element extraction,General Computer Science,PENDING_REVIEW
+element_wise_multiplication,Element-Wise Multiplication,element-wise multiplication,General Computer Science,PENDING_REVIEW
+elman_net,Elman Net,elman net,AI & Machine Learning,PENDING_REVIEW
+elmo,ELMo,elmo,General Computer Science,PENDING_REVIEW
+embeddings,Embeddings,embeddings,General Computer Science,PENDING_REVIEW
+energy_based_model,Energy-Based Model,energy-based model,AI & Machine Learning,PENDING_REVIEW
+english_constituency_parsing,English Constituency Parsing,english constituency parsing,AI & Machine Learning,PENDING_REVIEW
+english_to_french_translation,English-to-French Translation,english-to-french translation,General Computer Science,PENDING_REVIEW
+ensemble_learning,Ensemble Learning,ensemble learning,General Computer Science,PENDING_REVIEW
+enthalpy,Enthalpy,enthalpy,Natural Sciences,PENDING_REVIEW
+entity_classification,Entity Classification,entity classification,General Computer Science,PENDING_REVIEW
+entity_extraction,Entity Extraction,entity extraction,General Computer Science,PENDING_REVIEW
+entity_recognition,Entity Recognition,entity recognition,General Computer Science,PENDING_REVIEW
+entropy,Entropy,entropy,Probability & Statistics,PENDING_REVIEW
+error_backpropagation_algorithm,Error Backpropagation Algorithm,error backpropagation algorithm,General Computer Science,PENDING_REVIEW
+error_detection,Error Detection,error detection,Computer Networks,PENDING_REVIEW
+euler_totient_function,Euler Totient Function,euler totient function,Computer Networks,PENDING_REVIEW
+extendible_hashing,Extendible Hashing,extendible hashing,Database Systems,PENDING_REVIEW
+face_recognition,Face Recognition,face recognition,General Computer Science,PENDING_REVIEW
+fact_extraction,Fact Extraction,fact extraction,General Computer Science,PENDING_REVIEW
+fact_verification,Fact Verification,fact verification,General Computer Science,PENDING_REVIEW
+factuality,Factuality,factuality,General Computer Science,PENDING_REVIEW
+factuality_assessment,Factuality Assessment,factuality assessment,General Computer Science,PENDING_REVIEW
+false_positive_rate,False Positive Rate,false positive rate,Computer Networks,PENDING_REVIEW
+feature,Feature,feature,General Computer Science,PENDING_REVIEW
+feature_adaptation,Feature Adaptation,feature adaptation,General Computer Science,PENDING_REVIEW
+feature_based_approach,Feature-Based Approach,feature-based approach,General Computer Science,PENDING_REVIEW
+feature_engineering,Feature Engineering,feature engineering,General Computer Science,PENDING_REVIEW
+feature_learning,Feature Learning,feature learning,General Computer Science,PENDING_REVIEW
+feature_mapping,Feature Mapping,feature mapping,General Computer Science,PENDING_REVIEW
+feature_representations,Feature Representations,feature representations,General Computer Science,PENDING_REVIEW
+feature_selection,Feature Selection,feature selection,General Computer Science,PENDING_REVIEW
+federated_learning,Federated Learning,federated learning,General Computer Science,PENDING_REVIEW
+feedforward_neural_network,Feedforward Neural Network,feedforward neural network,AI & Machine Learning,PENDING_REVIEW
+feistel_cipher_structure,Feistel Cipher Structure,feistel cipher structure,Information Security,PENDING_REVIEW
+few_shot_prompting,Few-Shot Prompting,few-shot prompting,General Computer Science,PENDING_REVIEW
+few_shot_weakly_supervised_learning,Few-Shot Weakly-Supervised Learning,few-shot weakly-supervised learning,General Computer Science,PENDING_REVIEW
+fid,FID,fid,Probability & Statistics,PENDING_REVIEW
+fine_grained_batching,Fine-grained Batching,fine-grained batching,General Computer Science,PENDING_REVIEW
+fine_tuning,Fine-Tuning,fine-tuning,General Computer Science,PENDING_REVIEW
+fine_tuning_approach,Fine-Tuning Approach,fine-tuning approach,General Computer Science,PENDING_REVIEW
+finite_automata,Finite Automata,finite automata,Automata & Computation,PENDING_REVIEW
+finite_automaton,Finite Automaton,finite automaton,Automata & Computation,PENDING_REVIEW
+finite_state_machine,Finite State Machine,finite state machine,General Computer Science,PENDING_REVIEW
+fisher_vector,Fisher Vector,fisher vector,General Computer Science,PENDING_REVIEW
+flashattention,FlashAttention,flashattention,AI & Machine Learning,PENDING_REVIEW
+flow_control,Flow Control,flow control,Computer Networks,PENDING_REVIEW
+foreign_key_constraint,Foreign Key Constraint,foreign key constraint,Database Systems,PENDING_REVIEW
+formal_languages,Formal Languages,formal languages,Automata & Computation,PENDING_REVIEW
+forward_chaining,Forward-Chaining,forward-chaining,General Computer Science,PENDING_REVIEW
+framing,Framing,framing,General Computer Science,PENDING_REVIEW
+frequent_itemset,Frequent Itemset,frequent itemset,General Computer Science,PENDING_REVIEW
+full_fine_tuning,Full Fine-Tuning,full fine-tuning,General Computer Science,PENDING_REVIEW
+full_four_best_fit_models,Full-Four Best-Fit Models,full-four best-fit models,Probability & Statistics,PENDING_REVIEW
+fully_connected,Fully-Connected,fully-connected,General Computer Science,PENDING_REVIEW
+fully_connected_feed_forward_network,Fully Connected Feed-Forward Network,fully connected feed-forward network,General Computer Science,PENDING_REVIEW
+fully_connected_layer,Fully-Connected Layer,fully-connected layer,General Computer Science,PENDING_REVIEW
+gae,GAE,gae,General Computer Science,PENDING_REVIEW
+galois_field,Galois Field,galois field,Information Security,PENDING_REVIEW
+galois_field_arithmetic,Galois Field Arithmetic,galois field arithmetic,General Computer Science,PENDING_REVIEW
+gating,Gating,gating,General Computer Science,PENDING_REVIEW
+gaussian_distribution,Gaussian Distribution,gaussian distribution,Probability & Statistics,PENDING_REVIEW
+gcn,GCN,gcn,Mathematics for Computing,PENDING_REVIEW
+generation_phase,Generation Phase,generation phase,General Computer Science,PENDING_REVIEW
+generative_adversarial_network,Generative Adversarial Network,adversarial generative adversarial net,Information Security,PENDING_REVIEW
+gibbs_free_energy,Gibbs Free Energy,gibbs free energy,General Computer Science,PENDING_REVIEW
+global_search,Global Search,global search,General Computer Science,PENDING_REVIEW
+global_sensemaking,Global Sensemaking,global sensemaking,General Computer Science,PENDING_REVIEW
+glue,GLUE,glue,General Computer Science,PENDING_REVIEW
+gpt,GPT,gpt,AI & Machine Learning,PENDING_REVIEW
+gpt_2,GPT-2,gpt-2,AI & Machine Learning,PENDING_REVIEW
+gpt_3,GPT-3,gpt-3,AI & Machine Learning,PENDING_REVIEW
+gpt_4,GPT-4,gpt-4,AI & Machine Learning,PENDING_REVIEW
+gpt_j,GPT-J,gpt-j,AI & Machine Learning,PENDING_REVIEW
+gradient,Gradient,gradient,General Computer Science,PENDING_REVIEW
+gradient_descent,Gradient Descent,gradient descent,General Computer Science,PENDING_REVIEW
+graph_attention_layer,Graph Attention Layer,graph attention layer,AI & Machine Learning,PENDING_REVIEW
+graph_attention_network,Graph Attention Network (GAT),gat,AI & Machine Learning,PENDING_REVIEW
+graph_attention_network,Graph Attention Network (GAT),gats,AI & Machine Learning,PENDING_REVIEW
+graph_attention_network,Graph Attention Network (GAT),graph attention,AI & Machine Learning,PENDING_REVIEW
+graph_attention_network,Graph Attention Network (GAT),graph attention network,AI & Machine Learning,PENDING_REVIEW
+graph_attention_network,Graph Attention Network (GAT),graph attention networks,AI & Machine Learning,PENDING_REVIEW
+graph_based_nids,Graph-Based NIDS,graph-based nids,General Computer Science,PENDING_REVIEW
+graph_convolutional_network,Graph Convolutional Network,graph convolutional network,Mathematics for Computing,PENDING_REVIEW
+graph_embeddings,Graph Embeddings,graph embeddings,General Computer Science,PENDING_REVIEW
+graph_laplacian,Graph Laplacian,graph laplacian,Mathematics for Computing,PENDING_REVIEW
+graph_neural_network,Graph Neural Network,graph neural network,AI & Machine Learning,PENDING_REVIEW
+graph_rag,Graph RAG,graph rag,AI & Machine Learning,PENDING_REVIEW
+graph_rag_community_summaries,Graph RAG - Community Summaries,graph rag - community summaries,AI & Machine Learning,PENDING_REVIEW
+graph_rag_deep,Graph RAG - Deep,graph rag - deep,AI & Machine Learning,PENDING_REVIEW
+graph_rag_entity_extraction,Graph RAG - Entity Extraction,graph rag - entity extraction,AI & Machine Learning,PENDING_REVIEW
+graph_rag_link_prediction,Graph RAG - Link Prediction,graph rag - link prediction,AI & Machine Learning,PENDING_REVIEW
+graph_representation,Graph Representation,graph representation,General Computer Science,PENDING_REVIEW
+graph_traversal,Graph Traversal,graph traversal,Information Security,PENDING_REVIEW
+graphsage,GraphSAGE,graphsage,General Computer Science,PENDING_REVIEW
+gsm8k,GSM8K,gsm8k,General Computer Science,PENDING_REVIEW
+guanaco_7b,Guanaco 7B,guanaco 7b,General Computer Science,PENDING_REVIEW
+halting_problem,Halting Problem,halting problem,Automata & Computation,PENDING_REVIEW
+hard_alignment,Hard Alignment,hard alignment,General Computer Science,PENDING_REVIEW
+harmlessness,Harmlessness,harmlessness,General Computer Science,PENDING_REVIEW
+harmlessness_score,Harmlessness Score,harmlessness score,General Computer Science,PENDING_REVIEW
+hash_indexing,Hash Indexing,hash indexing,Database Systems,PENDING_REVIEW
+hash_table,Hash Table,hash table,Data Structures & Algorithms,PENDING_REVIEW
+hdbscan,Hdbscan,hdbscan,General Computer Science,PENDING_REVIEW
+health_and_wellness,Health and Wellness,health and wellness,General Computer Science,PENDING_REVIEW
+helpful,Helpful,helpful,General Computer Science,PENDING_REVIEW
+heuristic_search,Heuristic Search,heuristic search,AI & Machine Learning,PENDING_REVIEW
+hierarchical_density_based_spatial_clustering,Hierarchical Density-Based Spatial Clustering,hierarchical density-based spatial clustering,General Computer Science,PENDING_REVIEW
+human_feedback,Human Feedback,human feedback,General Computer Science,PENDING_REVIEW
+hyperparameter_tuning,Hyperparameter Tuning,hyperparameter tuning,General Computer Science,PENDING_REVIEW
+ilsvrc,Ilsvrc,ilsvrc,General Computer Science,PENDING_REVIEW
+image_retrieval,Image Retrieval,image retrieval,General Computer Science,PENDING_REVIEW
+imagenet,ImageNet,imagenet,General Computer Science,PENDING_REVIEW
+in_context_learning,In-Context Learning,in-context learning,General Computer Science,PENDING_REVIEW
+inception_score,Inception Score,inception score,Probability & Statistics,PENDING_REVIEW
+inheritance,Inheritance,inheritance,Software Engineering,PENDING_REVIEW
+inheritance_hierarchy,Inheritance Hierarchy,inheritance hierarchy,Software Engineering,PENDING_REVIEW
+inner_monologue,Inner Monologue,inner monologue,General Computer Science,PENDING_REVIEW
+instructgpt,InstructGPT,instructgpt,AI & Machine Learning,PENDING_REVIEW
+instruction_cycle,Instruction Cycle,instruction cycle,Computer Architecture,PENDING_REVIEW
+instruction_fetch,Instruction Fetch,instruction fetch,General Computer Science,PENDING_REVIEW
+instruction_pipelining,Instruction Pipelining,cpu pipeline,Computer Architecture,PENDING_REVIEW
+instruction_pipelining,Instruction Pipelining,instruction pipelining,Computer Architecture,PENDING_REVIEW
+instruction_pipelining,Instruction Pipelining,pipeline,Computer Architecture,PENDING_REVIEW
+instruction_pipelining,Instruction Pipelining,pipelining,Computer Architecture,PENDING_REVIEW
+instruction_set_architecture,Instruction Set Architecture (ISA),instruction set,Computer Architecture,PENDING_REVIEW
+instruction_set_architecture,Instruction Set Architecture (ISA),instruction set architecture,Computer Architecture,PENDING_REVIEW
+instruction_set_architecture,Instruction Set Architecture (ISA),isa,Computer Architecture,PENDING_REVIEW
+instruction_tuning,Instruction Tuning,instruction tuning,AI & Machine Learning,PENDING_REVIEW
+intermediate_code_generation,Intermediate Code Generation,intermediate code generation,Compilers & Languages,PENDING_REVIEW
+interrupt_service_routine,Interrupt Service Routine,interrupt service routine,General Computer Science,PENDING_REVIEW
+intra_attention,Intra-Attention,intra-attention,Computer Networks,PENDING_REVIEW
+inverse_gaussian_process,Inverse Gaussian Process,inverse gaussian process,Probability & Statistics,PENDING_REVIEW
+ipsec,IPsec,ipsec,Information Security,PENDING_REVIEW
+iterative_dichotomization,Iterative Dichotomization,iterative dichotomization,General Computer Science,PENDING_REVIEW
+jensen_s_formula,Jensen's Formula,jensen's formula,AI & Machine Learning,PENDING_REVIEW
+joint_learning,Joint Learning,joint learning,General Computer Science,PENDING_REVIEW
+k_means_clustering,K-Means Clustering,k-means clustering,General Computer Science,PENDING_REVIEW
+kernel_mode,Kernel Mode,kernel mode,Operating Systems,PENDING_REVIEW
+kernel_trick,Kernel Trick,kernel trick,Operating Systems,PENDING_REVIEW
+keyword_clustering,Keyword Clustering,keyword clustering,General Computer Science,PENDING_REVIEW
+keyword_query,Keyword Query,keyword query,General Computer Science,PENDING_REVIEW
+kl_divergence,Kullback-Leibler Divergence,kl divergence,Probability & Statistics,PENDING_REVIEW
+kl_divergence,Kullback-Leibler Divergence,kl-divergence,Probability & Statistics,PENDING_REVIEW
+kl_divergence,Kullback-Leibler Divergence,kullback leibler divergence,Probability & Statistics,PENDING_REVIEW
+kl_divergence,Kullback-Leibler Divergence,kullback-leibler divergence,Probability & Statistics,PENDING_REVIEW
+kl_divergence,Kullback-Leibler Divergence,relative entropy,Probability & Statistics,PENDING_REVIEW
+knowledge_graph,Knowledge Graph,knowledge graph,General Computer Science,PENDING_REVIEW
+kv_cache,KV Cache,kv cache,AI & Machine Learning,PENDING_REVIEW
+label_propagation,Label Propagation,label propagation,General Computer Science,PENDING_REVIEW
+lalr,LALR Parsing,lalr,Compilers & Languages,PENDING_REVIEW
+lalr,LALR Parsing,lalr parser,Compilers & Languages,PENDING_REVIEW
+lalr,LALR Parsing,lalr parsing,Compilers & Languages,PENDING_REVIEW
+lalr,LALR Parsing,lalr(1),Compilers & Languages,PENDING_REVIEW
+lalr,LALR Parsing,look-ahead lr,Compilers & Languages,PENDING_REVIEW
+lamda,LaMDA,lamda,General Computer Science,PENDING_REVIEW
+langevin_dynamics,Langevin Dynamics,langevin dynamics,General Computer Science,PENDING_REVIEW
+language_model,Language Model,language model,AI & Machine Learning,PENDING_REVIEW
+language_model_meta_learning,Language Model Meta-Learning,language model meta-learning,AI & Machine Learning,PENDING_REVIEW
+large_language_model,Large Language Model,large language model,AI & Machine Learning,PENDING_REVIEW
+large_language_model_serving,Large Language Model Serving,large language model serving,AI & Machine Learning,PENDING_REVIEW
+large_models,Large Models,large models,General Computer Science,PENDING_REVIEW
+large_pre_trained_language_models,Large Pre- trained Language Models,large pre- trained language models,AI & Machine Learning,PENDING_REVIEW
+latent_variable,Latent Variable,latent variable,Probability & Statistics,PENDING_REVIEW
+layer_normalization,Layer Normalization,layer normalization,General Computer Science,PENDING_REVIEW
+layered_linear_function,Layered Linear Function,layered linear function,Computer Networks,PENDING_REVIEW
+layernorm,LayerNorm,layernorm,Computer Networks,PENDING_REVIEW
+learned_inference_net,Learned Inference Net,learned inference net,AI & Machine Learning,PENDING_REVIEW
+leiden_algorithm,Leiden Algorithm,leiden algorithm,General Computer Science,PENDING_REVIEW
+lexical_analysis,Lexical Analysis,lexical analysis,Compilers & Languages,PENDING_REVIEW
+linear_algebra,Linear Algebra,linear algebra,Mathematics for Computing,PENDING_REVIEW
+linear_auto_encoder,Linear Auto-Encoder,linear auto-encoder,General Computer Science,PENDING_REVIEW
+linear_regression,Linear Regression,linear regression,General Computer Science,PENDING_REVIEW
+linear_separability,Linear Separability,linear separability,General Computer Science,PENDING_REVIEW
+linear_transformation,Linear Transformation,linear transformation,Mathematics for Computing,PENDING_REVIEW
+ll_parser,Ll Parser,ll parser,Compilers & Languages,PENDING_REVIEW
+llama,Llama,llama,AI & Machine Learning,PENDING_REVIEW
+llama_index,Llama Index,llama index,General Computer Science,PENDING_REVIEW
+llm_evaluator,LLM Evaluator,llm evaluator,AI & Machine Learning,PENDING_REVIEW
+local_outlier_factor,Local Outlier Factor,local outlier factor,General Computer Science,PENDING_REVIEW
+log_loss,Log Loss,log loss,General Computer Science,PENDING_REVIEW
+logistic_regression,Logistic Regression,logistic regression,General Computer Science,PENDING_REVIEW
+long_context_retrieval,Long-Context Retrieval,long-context retrieval,General Computer Science,PENDING_REVIEW
+long_context_transformer,Long-Context Transformer,long-context transformer,AI & Machine Learning,PENDING_REVIEW
+long_short_temner_neural_network,Long Short-Temner Neural Network,long short-temner neural network,AI & Machine Learning,PENDING_REVIEW
+long_short_term_memory,Long Short-Term Memory,long short-term memory,AI & Machine Learning,PENDING_REVIEW
+long_time_lag_problem,Long-Time-Lag Problem,long-time-lag problem,General Computer Science,PENDING_REVIEW
+longer_context,Longer Context,longer context,General Computer Science,PENDING_REVIEW
+loss_function,Loss Function,loss function,General Computer Science,PENDING_REVIEW
+low_rank_adaptation,Low-Rank Adaptation,low-rank adaptation,Computer Networks,PENDING_REVIEW
+lr_parser,Lr Parser,lr parser,Compilers & Languages,PENDING_REVIEW
+lstm,LSTM,lstm,AI & Machine Learning,PENDING_REVIEW
+ltr,LTR,ltr,General Computer Science,PENDING_REVIEW
+machine_learning,Machine Learning,machine learning,General Computer Science,PENDING_REVIEW
+machine_reader,Machine Reader,machine reader,General Computer Science,PENDING_REVIEW
+markov_assumption,Markov Assumption,markov assumption,Probability & Statistics,PENDING_REVIEW
+markov_chain,Markov Chain,markov chain,Probability & Statistics,PENDING_REVIEW
+markov_chain_monte_carlo,Markov Chain Monte Carlo,markov chain monte carlo,Probability & Statistics,PENDING_REVIEW
+markov_decision_process,Markov Decision Process,markov decision process,Probability & Statistics,PENDING_REVIEW
+masked_language_modeling,Masked Language Modeling,masked language modeling,AI & Machine Learning,PENDING_REVIEW
+masking,Masking,masking,General Computer Science,PENDING_REVIEW
+matrix_decomposition,Matrix Decomposition,matrix decomposition,Computer Networks,PENDING_REVIEW
+matrix_factorization,Matrix Factorization,matrix factorization,Computer Networks,PENDING_REVIEW
+matrix_multiplication,Matrix Multiplication,matrix multiplication,Mathematics for Computing,PENDING_REVIEW
+maximum_likelihood_estimation,Maximum Likelihood Estimation (MLE),gaussian mle,Probability & Statistics,PENDING_REVIEW
+maximum_likelihood_estimation,Maximum Likelihood Estimation (MLE),maximum likelihood,Probability & Statistics,PENDING_REVIEW
+maximum_likelihood_estimation,Maximum Likelihood Estimation (MLE),maximum likelihood estimation,Probability & Statistics,PENDING_REVIEW
+maximum_likelihood_estimation,Maximum Likelihood Estimation (MLE),mle,Probability & Statistics,PENDING_REVIEW
+mean_absolute_error,Mean Absolute Error,mean absolute error,AI & Machine Learning,PENDING_REVIEW
+memory_hierarchy,Memory Hierarchy,memory hierarchy,Computer Architecture,PENDING_REVIEW
+memory_management_unit,Memory Management Unit,memory management unit,General Computer Science,PENDING_REVIEW
+message_authentication_code,Message Authentication Code,message authentication code,Information Security,PENDING_REVIEW
+michaelis_menten_equation,Michaelis-Menten Equation,michaelis-menten equation,Natural Sciences,PENDING_REVIEW
+missing_values,Missing Values,missing values,General Computer Science,PENDING_REVIEW
+modular_arithmetic,Modular Arithmetic,modular arithmetic,Information Security,PENDING_REVIEW
+multi_channel_graph_convolutional_network,Multi-Channel Graph Convolutional Network,multi-channel graph convolutional network,Mathematics for Computing,PENDING_REVIEW
+multi_class_classification,Multi-Class Classification,multi-class classification,Probability & Statistics,PENDING_REVIEW
+multi_head_attention,Multi-Head Attention,multi-head attention,Computer Networks,PENDING_REVIEW
+multi_hop_question_answering,Multi-Hop Question Answering,multi-hop question answering,General Computer Science,PENDING_REVIEW
+multi_label_classiﬁcation,Multi-Label Classiﬁcation,multi-label classiﬁcation,Computer Networks,PENDING_REVIEW
+multi_layer_neural_network,Multi-layer Neural Network,multi-layer neural network,Mathematics for Computing,PENDING_REVIEW
+multi_layer_perceptron,Multi-Layer Perceptron,multi-layer perceptron,AI & Machine Learning,PENDING_REVIEW
+multi_layer_recurrent_neural_network,Multi-Layer Recurrent Neural Network,multi-layer recurrent neural network,AI & Machine Learning,PENDING_REVIEW
+multi_model_evaluation,Multi-Model Evaluation,multi-model evaluation,General Computer Science,PENDING_REVIEW
+multi_setting,Multi Setting,multi setting,General Computer Science,PENDING_REVIEW
+multi_task_learning,Multi-task Learning,multi-task learning,General Computer Science,PENDING_REVIEW
+multihead,MultiHead,multihead,Computer Networks,PENDING_REVIEW
+multilayer_perceptron,Multilayer Perceptron,multilayer perceptron,AI & Machine Learning,PENDING_REVIEW
+multilevel_feedback_queue,Multilevel Feedback Queue,multilevel feedback queue,Operating Systems,PENDING_REVIEW
+multiple_choice,Multiple Choice,multiple choice,General Computer Science,PENDING_REVIEW
+multiple_choice_question,Multiple Choice Question,multiple choice question,General Computer Science,PENDING_REVIEW
+multiple_language_model,Multiple Language Model,multiple language model,AI & Machine Learning,PENDING_REVIEW
+multivariate_exploration,Multivariate Exploration,multivariate exploration,Probability & Statistics,PENDING_REVIEW
+mutex_lock,Mutex Lock,mutex lock,Operating Systems,PENDING_REVIEW
+name_token,Name Token,name token,AI & Machine Learning,PENDING_REVIEW
+natural_questions,Natural Questions,natural questions,General Computer Science,PENDING_REVIEW
+nearest_neighbor,Nearest Neighbor,nearest neighbor,General Computer Science,PENDING_REVIEW
+nearest_neighbor_algorithm,Nearest Neighbor Algorithm,nearest neighbor algorithm,General Computer Science,PENDING_REVIEW
+nearest_neighbor_density_estimation,Nearest Neighbor Density Estimation,nearest neighbor density estimation,General Computer Science,PENDING_REVIEW
+negative_log_likelihood,Negative Log-likelihood,negative log-likelihood,General Computer Science,PENDING_REVIEW
+negative_passage,Negative Passage,negative passage,General Computer Science,PENDING_REVIEW
+negative_prediction,Negative Prediction,negative prediction,General Computer Science,PENDING_REVIEW
+neighborhood,Neighborhood,neighborhood,General Computer Science,PENDING_REVIEW
+network_architecture,Network Architecture,network architecture,Information Security,PENDING_REVIEW
+network_intrusion_detection,Network Intrusion Detection System (NIDS),ids,Information Security,PENDING_REVIEW
+network_intrusion_detection,Network Intrusion Detection System (NIDS),intrusion detection system,Information Security,PENDING_REVIEW
+network_intrusion_detection,Network Intrusion Detection System (NIDS),network intrusion detection,Information Security,PENDING_REVIEW
+network_intrusion_detection,Network Intrusion Detection System (NIDS),nids,Information Security,PENDING_REVIEW
+network_layer,Network Layer,network layer,Computer Networks,PENDING_REVIEW
+network_security,Network Security,network security,Information Security,PENDING_REVIEW
+network_topology,Network Topology,network topology,Computer Networks,PENDING_REVIEW
+neural_machine_translation,Neural Machine Translation,neural machine translation,AI & Machine Learning,PENDING_REVIEW
+neural_network,Neural Network,neural network,AI & Machine Learning,PENDING_REVIEW
+neural_network_autoregressive_model,Neural Network Autoregressive Model,neural network autoregressive model,AI & Machine Learning,PENDING_REVIEW
+neural_text_generation,Neural Text Generation,neural text generation,AI & Machine Learning,PENDING_REVIEW
+neuron,Neuron,neuron,General Computer Science,PENDING_REVIEW
+next_sentence_prediction,Next Sentence Prediction,next sentence prediction,General Computer Science,PENDING_REVIEW
+non_parametric_memory,Non-Parametric Memory,non-parametric memory,General Computer Science,PENDING_REVIEW
+nondeterministic_finite_automaton,Nondeterministic Finite Automaton (NFA),nfa,Automata & Computation,PENDING_REVIEW
+nondeterministic_finite_automaton,Nondeterministic Finite Automaton (NFA),nondeterministic finite automata,Automata & Computation,PENDING_REVIEW
+nondeterministic_finite_automaton,Nondeterministic Finite Automaton (NFA),nondeterministic finite automaton,Automata & Computation,PENDING_REVIEW
+one_class_support_vector_machine,One-Class Support Vector Machine,one-class support vector machine,General Computer Science,PENDING_REVIEW
+one_shot,One-Shot,one-shot,General Computer Science,PENDING_REVIEW
+online_softmax,Online Softmax,online softmax,AI & Machine Learning,PENDING_REVIEW
+open_domain_question_answering,Open-Domain Question Answering,open-domain question answering,General Computer Science,PENDING_REVIEW
+open_msmarco,Open-MSMarco,open-msmarco,General Computer Science,PENDING_REVIEW
+optimizer,Optimizer,optimizer,General Computer Science,PENDING_REVIEW
+osi_model,OSI Model,osi model,Computer Networks,PENDING_REVIEW
+packet_encapsulation,Packet Encapsulation,packet encapsulation,Computer Networks,PENDING_REVIEW
+packet_size,Packet Size,packet size,Computer Networks,PENDING_REVIEW
+packet_switching,Packet Switching,packet switching,Computer Networks,PENDING_REVIEW
+page_fault_handling,Page Fault Handling,page fault handling,General Computer Science,PENDING_REVIEW
+page_table,Page Table,multi-level page table,Operating Systems,PENDING_REVIEW
+page_table,Page Table,page table,Operating Systems,PENDING_REVIEW
+page_table,Page Table,page tables,Operating Systems,PENDING_REVIEW
+paged_attention,PagedAttention,paged attention,AI & Machine Learning,PENDING_REVIEW
+paged_attention,PagedAttention,pagedattention,AI & Machine Learning,PENDING_REVIEW
+paging,Paging,memory paging,Operating Systems,PENDING_REVIEW
+paging,Paging,paging,Operating Systems,PENDING_REVIEW
+paging,Paging,virtual memory paging,Operating Systems,PENDING_REVIEW
+palm,PaLM,palm,General Computer Science,PENDING_REVIEW
+palm_540b,PaLM 540B,palm 540b,General Computer Science,PENDING_REVIEW
+palm_62b,PaLM 62B,palm 62b,General Computer Science,PENDING_REVIEW
+palm_reasoning_evaluation,PaLM Reasoning Evaluation,palm reasoning evaluation,General Computer Science,PENDING_REVIEW
+parallel_decoding,Parallel Decoding,parallel decoding,General Computer Science,PENDING_REVIEW
+parallel_sampling,Parallel Sampling,parallel sampling,Probability & Statistics,PENDING_REVIEW
+parameter_efficient_fine_tuning,Parameter-Efficient Fine-Tuning,parameter-efficient fine-tuning,Mathematics for Computing,PENDING_REVIEW
+parameter_efficient_generation,Parameter-Efficient Generation,parameter-efficient generation,General Computer Science,PENDING_REVIEW
+parameter_estimation,Parameter Estimation,parameter estimation,General Computer Science,PENDING_REVIEW
+parametric_language_model,Parametric Language Model,parametric language model,AI & Machine Learning,PENDING_REVIEW
+parse_tree,Parse Tree,parse tree,Compilers & Languages,PENDING_REVIEW
+partial_match,Partial Match,partial match,General Computer Science,PENDING_REVIEW
+partial_regular_expression,Partial Regular Expression,partial regular expression,General Computer Science,PENDING_REVIEW
+performance_on_downstream_tasks,Performance on Downstream Tasks,performance on downstream tasks,General Computer Science,PENDING_REVIEW
+pipeline_hazards,Pipeline Hazards,control hazard,Computer Architecture,PENDING_REVIEW
+pipeline_hazards,Pipeline Hazards,data hazard,Computer Architecture,PENDING_REVIEW
+pipeline_hazards,Pipeline Hazards,pipeline hazard,Computer Architecture,PENDING_REVIEW
+pipeline_hazards,Pipeline Hazards,pipeline hazards,Computer Architecture,PENDING_REVIEW
+pixel,Pixel,pixel,General Computer Science,PENDING_REVIEW
+pixelcnn,PixelCNN,pixelcnn,Mathematics for Computing,PENDING_REVIEW
+pixeliqn,PixelIQN,pixeliqn,General Computer Science,PENDING_REVIEW
+planetoid,Planetoid,planetoid,General Computer Science,PENDING_REVIEW
+pn_junction_diode,PN Junction Diode,pn junction diode,General Computer Science,PENDING_REVIEW
+policy_and_regulation,Policy and Regulation,policy and regulation,General Computer Science,PENDING_REVIEW
+policy_following,Policy Following,policy following,General Computer Science,PENDING_REVIEW
+policy_improvement,Policy Improvement,policy improvement,General Computer Science,PENDING_REVIEW
+policy_tuning,Policy Tuning,policy tuning,General Computer Science,PENDING_REVIEW
+polynomial_regression,Polynomial Regression,polynomial regression,General Computer Science,PENDING_REVIEW
+posunk,PosUnk,posunk,Computer Networks,PENDING_REVIEW
+ppo,PPO,ppo,General Computer Science,PENDING_REVIEW
+preemptive_multitasking,Preemptive Multitasking,preemptive multitasking,Operating Systems,PENDING_REVIEW
+preference_labeling,Preference Labeling,preference labeling,General Computer Science,PENDING_REVIEW
+preference_learning,Preference Learning,preference learning,General Computer Science,PENDING_REVIEW
+preference_models,Preference Models,preference models,General Computer Science,PENDING_REVIEW
+preference_sampling,Preference Sampling,preference sampling,AI & Machine Learning,PENDING_REVIEW
+preferred_ft,Preferred-FT,preferred-ft,General Computer Science,PENDING_REVIEW
+prelayer,PreLayer,prelayer,AI & Machine Learning,PENDING_REVIEW
+principal_component_analysis,Principal Component Analysis (PCA),pca,Mathematics for Computing,PENDING_REVIEW
+principal_component_analysis,Principal Component Analysis (PCA),principal component analysis,Mathematics for Computing,PENDING_REVIEW
+principal_component_analysis,Principal Component Analysis (PCA),principal components,Mathematics for Computing,PENDING_REVIEW
+priority_queue_mechanics,Priority Queue Mechanics,priority queue mechanics,Data Structures & Algorithms,PENDING_REVIEW
+probabilistic_encoder,Probabilistic Encoder,probabilistic encoder,General Computer Science,PENDING_REVIEW
+probability,Probability,probability,Probability & Statistics,PENDING_REVIEW
+probability_distribution,Probability Distribution,probability distribution,Probability & Statistics,PENDING_REVIEW
+process_state,Process State,process state,Operating Systems,PENDING_REVIEW
+producer_consumer_problem,Producer Consumer Problem,producer consumer problem,Operating Systems,PENDING_REVIEW
+prompt,Prompt,prompt,AI & Machine Learning,PENDING_REVIEW
+prompt_distribution,Prompt Distribution,prompt distribution,Probability & Statistics,PENDING_REVIEW
+prompt_engineering,Prompt Engineering,prompt engineering,General Computer Science,PENDING_REVIEW
+prompt_validation,Prompt Validation,prompt validation,General Computer Science,PENDING_REVIEW
+protocol_stack,Protocol Stack,protocol stack,Computer Networks,PENDING_REVIEW
+public_key_cryptography,Public-Key Cryptography,asymmetric cryptography,Information Security,PENDING_REVIEW
+public_key_cryptography,Public-Key Cryptography,public key cryptography,Information Security,PENDING_REVIEW
+public_key_cryptography,Public-Key Cryptography,public-key cryptography,Information Security,PENDING_REVIEW
+pubmed,Pubmed,pubmed,General Computer Science,PENDING_REVIEW
+pumping_lemma,Pumping Lemma,pumping lemma,Automata & Computation,PENDING_REVIEW
+pumping_lemma,Pumping Lemma,pumping lemma for regular languages,Automata & Computation,PENDING_REVIEW
+pushdown_automaton,Pushdown Automaton,pushdown automaton,Automata & Computation,PENDING_REVIEW
+python,Python,python,General Computer Science,PENDING_REVIEW
+python_identifier,Python Identifier,python identifier,General Computer Science,PENDING_REVIEW
+python_keyword,Python Keyword,python keyword,General Computer Science,PENDING_REVIEW
+python_variable_naming_conventions,Python Variable Naming Conventions,python variable naming conventions,General Computer Science,PENDING_REVIEW
+qlora,QLoRA,qlora,AI & Machine Learning,PENDING_REVIEW
+quantifier,Quantifier,quantifier,General Computer Science,PENDING_REVIEW
+quantile,Quantile,quantile,Probability & Statistics,PENDING_REVIEW
+quantile_function,Quantile Function,quantile function,Computer Networks,PENDING_REVIEW
+quantization,Quantization,quantization,AI & Machine Learning,PENDING_REVIEW
+question_answering,Question Answering,question answering,General Computer Science,PENDING_REVIEW
+queue_mechanics,Queue Mechanics,queue mechanics,Data Structures & Algorithms,PENDING_REVIEW
+qwen3_base,Qwen3 Base,qwen3 base,General Computer Science,PENDING_REVIEW
+rag_sequence,RAG-Sequence,rag-sequence,AI & Machine Learning,PENDING_REVIEW
+random_forest,Random Forest,random forest,General Computer Science,PENDING_REVIEW
+random_generation,Random Generation,random generation,General Computer Science,PENDING_REVIEW
+random_number_generation,Random Number Generation,random number generation,General Computer Science,PENDING_REVIEW
+random_sampling,Random Sampling,random sampling,Probability & Statistics,PENDING_REVIEW
+random_variable,Random Variable,random variable,Probability & Statistics,PENDING_REVIEW
+random_weight_guessing,Random Weight Guessing,random weight guessing,General Computer Science,PENDING_REVIEW
+range_scan,Range Scan,range scan,Database Systems,PENDING_REVIEW
+react,ReAct,react,General Computer Science,PENDING_REVIEW
+reasoning_error,Reasoning Error,reasoning error,General Computer Science,PENDING_REVIEW
+reasoning_over_context,Reasoning over Context,reasoning over context,General Computer Science,PENDING_REVIEW
+reasoning_trace,Reasoning Trace,reasoning trace,General Computer Science,PENDING_REVIEW
+reasoning_with_external_knowledge,Reasoning with External Knowledge,reasoning with external knowledge,AI & Machine Learning,PENDING_REVIEW
+recurrent_layer,Recurrent Layer,recurrent layer,AI & Machine Learning,PENDING_REVIEW
+recurrent_neural_network,Recurrent Neural Network,recurrent neural network,AI & Machine Learning,PENDING_REVIEW
+reduce_operation,Reduce Operation,reduce operation,Compilers & Languages,PENDING_REVIEW
+regular_expression,Regular Expression,regular expression,General Computer Science,PENDING_REVIEW
+regular_languages,Regular Languages,regular language,Automata & Computation,PENDING_REVIEW
+regular_languages,Regular Languages,regular languages,Automata & Computation,PENDING_REVIEW
+regularization,Regularization,regularization,Probability & Statistics,PENDING_REVIEW
+reinforcement_learning,Reinforcement Learning,reinforcement learning,AI & Machine Learning,PENDING_REVIEW
+relational_algebra,Relational Algebra,relational algebra,Database Systems,PENDING_REVIEW
+relational_database,Relational Database,relational database,Database Systems,PENDING_REVIEW
+relationship,Relationship,relationship,General Computer Science,PENDING_REVIEW
+relationship_extraction,Relationship Extraction,relationship extraction,General Computer Science,PENDING_REVIEW
+relative_density,Relative Density,relative density,Probability & Statistics,PENDING_REVIEW
+relus,ReLUs,relus,Information Security,PENDING_REVIEW
+relü,ReLü,relü,General Computer Science,PENDING_REVIEW
+reparameterization,Reparameterization,reparameterization,AI & Machine Learning,PENDING_REVIEW
+residual_skip_connection,Residual Skip Connection,residual skip connection,General Computer Science,PENDING_REVIEW
+resource_allocation_graph,Resource Allocation Graph,resource allocation graph,Operating Systems,PENDING_REVIEW
+retrieval,Retrieval,retrieval,General Computer Science,PENDING_REVIEW
+retrieval_augmented_generation,Retrieval-Augmented Generation (RAG),rag,AI & Machine Learning,PENDING_REVIEW
+retrieval_augmented_generation,Retrieval-Augmented Generation (RAG),retrieval augmented generation,AI & Machine Learning,PENDING_REVIEW
+retrieval_augmented_generation,Retrieval-Augmented Generation (RAG),retrieval-augmented generation,AI & Machine Learning,PENDING_REVIEW
+reward_class,Reward Class,reward class,General Computer Science,PENDING_REVIEW
+reward_function,Reward Function,reward function,Computer Networks,PENDING_REVIEW
+reward_model,Reward Model,reward model,Computer Networks,PENDING_REVIEW
+reward_value,Reward Value,reward value,General Computer Science,PENDING_REVIEW
+rlhf,RLHF,rlhf,AI & Machine Learning,PENDING_REVIEW
+rnn,RNN,rnn,AI & Machine Learning,PENDING_REVIEW
+roberta,RoBERTa,roberta,AI & Machine Learning,PENDING_REVIEW
+round_robin_scheduling,Round Robin Scheduling,round robin scheduling,Operating Systems,PENDING_REVIEW
+rsa_cryptosystem,RSA Cryptosystem,rsa,Information Security,PENDING_REVIEW
+rsa_cryptosystem,RSA Cryptosystem,rsa algorithm,Information Security,PENDING_REVIEW
+rsa_cryptosystem,RSA Cryptosystem,rsa cryptosystem,Information Security,PENDING_REVIEW
+rsa_cryptosystem,RSA Cryptosystem,rsa encryption,Information Security,PENDING_REVIEW
+saga,SAGA,saga,General Computer Science,PENDING_REVIEW
+score_matching,Score Matching,score matching methods,AI & Machine Learning,PENDING_REVIEW
+score_matching,Score Matching,score-matching methods,AI & Machine Learning,PENDING_REVIEW
+second_order_nets,Second Order Nets,second order nets,AI & Machine Learning,PENDING_REVIEW
+segmentation,Segmentation,segmentation,Operating Systems,PENDING_REVIEW
+self_attention,Self-Attention,self-attention,AI & Machine Learning,PENDING_REVIEW
+self_improvement,Self-Improvement,self-improvement,AI & Machine Learning,PENDING_REVIEW
+self_organizing_map,Self-Organizing Map,self-organizing map,AI & Machine Learning,PENDING_REVIEW
+self_refinement,Self-Refinement,self-refinement,General Computer Science,PENDING_REVIEW
+self_reflexive_prompting,Self-Reflexive Prompting,self-reflexive prompting,AI & Machine Learning,PENDING_REVIEW
+semantic_analysis,Semantic Analysis,semantic analysis,Compilers & Languages,PENDING_REVIEW
+semaphore,Semaphore,semaphore,Operating Systems,PENDING_REVIEW
+sentence_building,Sentence Building,sentence building,General Computer Science,PENDING_REVIEW
+sentence_or_paragraph_completion,Sentence or Paragraph Completion,sentence or paragraph completion,AI & Machine Learning,PENDING_REVIEW
+sentiment_analysis,Sentiment Analysis,sentiment analysis,AI & Machine Learning,PENDING_REVIEW
+sequence,Sequence,sequence,General Computer Science,PENDING_REVIEW
+sequence_tagging,Sequence Tagging,sequence tagging,General Computer Science,PENDING_REVIEW
+sequence_to_sequence_conditioning,Sequence-to-Sequence Conditioning,sequence-to-sequence conditioning,General Computer Science,PENDING_REVIEW
+set_theory,Set Theory,set theory,Mathematics for Computing,PENDING_REVIEW
+sgvb,SGVB,sgvb,Probability & Statistics,PENDING_REVIEW
+short_short,Short Short,short short,General Computer Science,PENDING_REVIEW
+short_short_term_memory,Short Short-Term Memory,short short-term memory,General Computer Science,PENDING_REVIEW
+shortest_path_unweighted,Shortest Path Unweighted,shortest path unweighted,Data Structures & Algorithms,PENDING_REVIEW
+singular_value_decomposition,Singular Value Decomposition (SVD),singular value decomposition,Mathematics for Computing,PENDING_REVIEW
+singular_value_decomposition,Singular Value Decomposition (SVD),singular values,Mathematics for Computing,PENDING_REVIEW
+singular_value_decomposition,Singular Value Decomposition (SVD),svd,Mathematics for Computing,PENDING_REVIEW
+sliding_window_protocol,Sliding Window Protocol,sliding window protocol,Computer Architecture,PENDING_REVIEW
+soft_alignment,Soft Alignment,soft alignment,General Computer Science,PENDING_REVIEW
+software_development_lifecycle,Software Development Lifecycle (SDLC),agile development,Software Engineering,PENDING_REVIEW
+software_development_lifecycle,Software Development Lifecycle (SDLC),sdlc,Software Engineering,PENDING_REVIEW
+software_development_lifecycle,Software Development Lifecycle (SDLC),software development lifecycle,Software Engineering,PENDING_REVIEW
+software_engineering,Software Engineering,se,Software Engineering,PENDING_REVIEW
+software_engineering,Software Engineering,software engineering,Software Engineering,PENDING_REVIEW
+solid_principles,SOLID Design Principles,solid,Software Engineering,PENDING_REVIEW
+solid_principles,SOLID Design Principles,solid design principles,Software Engineering,PENDING_REVIEW
+solid_principles,SOLID Design Principles,solid principles,Software Engineering,PENDING_REVIEW
+source_text_summary,Source Text Summary,source text summary,General Computer Science,PENDING_REVIEW
+sparse_mixture_of_experts,Sparse Mixture of Experts,sparse mixture of experts,AI & Machine Learning,PENDING_REVIEW
+sparse_routing,Sparse Routing,sparse routing,Probability & Statistics,PENDING_REVIEW
+spin_lock,Spin Lock,spin lock,Operating Systems,PENDING_REVIEW
+sql,SQL,sql,Database Systems,PENDING_REVIEW
+sql_injection,SQL Injection,sql injection,Information Security,PENDING_REVIEW
+squad,SQuAD,squad,General Computer Science,PENDING_REVIEW
+squad_1_1,SQuAD 1.1,squad 1.1,General Computer Science,PENDING_REVIEW
+sst_2,SST-2,sst-2,AI & Machine Learning,PENDING_REVIEW
+stack_mechanics,Stack Mechanics,stack mechanics,Data Structures & Algorithms,PENDING_REVIEW
+state_machine,State Machine,state machine,General Computer Science,PENDING_REVIEW
+stochastic_generation,Stochastic Generation,stochastic generation,Probability & Statistics,PENDING_REVIEW
+stochastic_gradient_descent,Stochastic Gradient Descent,stochastic gradient descent,General Computer Science,PENDING_REVIEW
+stochastic_variational_inference,Stochastic Variational Inference,stochastic variational inference,Probability & Statistics,PENDING_REVIEW
+strongly_connected_components,Strongly Connected Components,strongly connected components,Data Structures & Algorithms,PENDING_REVIEW
+summarization,Summarization,summarization,General Computer Science,PENDING_REVIEW
+superglue,SuperGLUE,superglue,General Computer Science,PENDING_REVIEW
+support_vector_machine,Support Vector Machine,support vector machine,General Computer Science,PENDING_REVIEW
+symbol_representation,Symbol Representation,symbol representation,General Computer Science,PENDING_REVIEW
+symbolic_processes,Symbolic Processes,symbolic processes,General Computer Science,PENDING_REVIEW
+symmetric_key_cryptography,Symmetric-Key Cryptography,symmetric cryptography,Information Security,PENDING_REVIEW
+symmetric_key_cryptography,Symmetric-Key Cryptography,symmetric encryption,Information Security,PENDING_REVIEW
+symmetric_key_cryptography,Symmetric-Key Cryptography,symmetric-key cryptography,Information Security,PENDING_REVIEW
+syntax,Syntax,syntax,General Computer Science,PENDING_REVIEW
+syntax_analysis,Syntax Analysis,syntax analysis,Compilers & Languages,PENDING_REVIEW
+system_evaluation,System Evaluation,system evaluation,AI & Machine Learning,PENDING_REVIEW
+tcp,Transmission Control Protocol (TCP),tcp,Computer Networks,PENDING_REVIEW
+tcp,Transmission Control Protocol (TCP),transmission control protocol,Computer Networks,PENDING_REVIEW
+tcp_congestion_control,TCP Congestion Control,tcp congestion control,Computer Networks,PENDING_REVIEW
+tcp_ip_model,Tcp Ip Model,tcp ip model,Computer Networks,PENDING_REVIEW
+tensorflow,TensorFlow,tensorflow,AI & Machine Learning,PENDING_REVIEW
+third_normal_form,Third Normal Form (3NF),third normal form (3nf),General Computer Science,PENDING_REVIEW
+threshold,Threshold,threshold,Computer Networks,PENDING_REVIEW
+tls_protocol,Transport Layer Security (TLS),ssl/tls,Information Security,PENDING_REVIEW
+tls_protocol,Transport Layer Security (TLS),tls,Information Security,PENDING_REVIEW
+tls_protocol,Transport Layer Security (TLS),tls 1.3,Information Security,PENDING_REVIEW
+tls_protocol,Transport Layer Security (TLS),tls handshake,Information Security,PENDING_REVIEW
+tls_protocol,Transport Layer Security (TLS),transport layer security,Information Security,PENDING_REVIEW
+token,Token,token,Compilers & Languages,PENDING_REVIEW
+token_dropping,Token Dropping,token dropping,AI & Machine Learning,PENDING_REVIEW
+token_stream,Token Stream,token stream,Compilers & Languages,PENDING_REVIEW
+topological_sort,Topological Sort,topological sort,Data Structures & Algorithms,PENDING_REVIEW
+training_loss,Training Loss,training loss,General Computer Science,PENDING_REVIEW
+transfer_learning,Transfer Learning,transfer learning,AI & Machine Learning,PENDING_REVIEW
+transfer_learning_in_nlp,Transfer Learning In Nlp,transfer learning in nlp,AI & Machine Learning,PENDING_REVIEW
+transfer_learning_with_language_models,Transfer Learning with Language Models,transfer learning with language models,AI & Machine Learning,PENDING_REVIEW
+transformer,Transformer,transformer,Computer Networks,PENDING_REVIEW
+transformer_block,Transformer Block,transformer block,AI & Machine Learning,PENDING_REVIEW
+transformer_encoder,Transformer Encoder,transformer encoder,Computer Networks,PENDING_REVIEW
+transformer_layer,Transformer Layer,transformer layer,AI & Machine Learning,PENDING_REVIEW
+translation,Translation,translation,General Computer Science,PENDING_REVIEW
+translation_lookaside_buffer,Translation Lookaside Buffer (TLB),tlb,Operating Systems,PENDING_REVIEW
+translation_lookaside_buffer,Translation Lookaside Buffer (TLB),translation lookaside buffer,Operating Systems,PENDING_REVIEW
+translation_quality,Translation Quality,translation quality,General Computer Science,PENDING_REVIEW
+tree,Tree,tree,General Computer Science,PENDING_REVIEW
+triviaqa,TriviaQA,triviaqa,General Computer Science,PENDING_REVIEW
+truthfulqa,TruthfulQA,truthfulqa,General Computer Science,PENDING_REVIEW
+ts_ids,Ts-Ids,ts-ids,General Computer Science,PENDING_REVIEW
+turing_machine,Turing Machine,turing machine,Automata & Computation,PENDING_REVIEW
+two_phase_locking,Two Phase Locking,two phase locking,Database Systems,PENDING_REVIEW
+unit_testing,Unit Testing,automated unit testing,Software Engineering,PENDING_REVIEW
+unit_testing,Unit Testing,unit test,Software Engineering,PENDING_REVIEW
+unit_testing,Unit Testing,unit testing,Software Engineering,PENDING_REVIEW
+variable,Variable,variable,General Computer Science,PENDING_REVIEW
+variational_autoencoder,Variational Autoencoder,variational autoencoder,Probability & Statistics,PENDING_REVIEW
+variational_bayesian,Variational Bayesian,variational bayesian,Probability & Statistics,PENDING_REVIEW
+variational_inference,Variational Inference,elbo optimization,Probability & Statistics,PENDING_REVIEW
+variational_inference,Variational Inference,variational bayes,Probability & Statistics,PENDING_REVIEW
+variational_inference,Variational Inference,variational inference,Probability & Statistics,PENDING_REVIEW
+variational_inference,Variational Inference,vi,Probability & Statistics,PENDING_REVIEW
+variational_lower_bound,Variational Lower Bound,variational lower bound,General Computer Science,PENDING_REVIEW
+vector,Vector,vector,General Computer Science,PENDING_REVIEW
+vector_embeddings,Vector Embeddings,vector embeddings,General Computer Science,PENDING_REVIEW
+vector_rag,Vector RAG,vector rag,AI & Machine Learning,PENDING_REVIEW
+vector_space,Vector Space,vector space,General Computer Science,PENDING_REVIEW
+version_control,Version Control System (VCS),git,Software Engineering,PENDING_REVIEW
+version_control,Version Control System (VCS),vcs,Software Engineering,PENDING_REVIEW
+version_control,Version Control System (VCS),version control,Software Engineering,PENDING_REVIEW
+version_control,Version Control System (VCS),version control system,Software Engineering,PENDING_REVIEW
+virtual_memory,Virtual Memory,virtual memory,Operating Systems,PENDING_REVIEW
+vllm,vLLM,vllm,AI & Machine Learning,PENDING_REVIEW
+wave_equations,Wave Equations,wave equations,Natural Sciences,PENDING_REVIEW
+wave_function,Wave Function,wave function,Probability & Statistics,PENDING_REVIEW
+web_traffic,Web Traffic,web traffic,General Computer Science,PENDING_REVIEW
+webcorpus,WebCorpus,webcorpus,General Computer Science,PENDING_REVIEW
+webtext_dataset,WebText Dataset,webtext dataset,General Computer Science,PENDING_REVIEW
+weight_adjustment,Weight Adjustment,weight adjustment,General Computer Science,PENDING_REVIEW
+weight_decay,Weight Decay,weight decay,AI & Machine Learning,PENDING_REVIEW
+weight_update,Weight Update,weight update,AI & Machine Learning,PENDING_REVIEW
+wmt_2014_english_to_german_translation,WMT 2014 English-to-German Translation,wmt 2014 english-to-german translation,AI & Machine Learning,PENDING_REVIEW
+word_embeddings,Word Embeddings,word embeddings,General Computer Science,PENDING_REVIEW
+wordpiece,WordPiece,wordpiece,General Computer Science,PENDING_REVIEW
+wrapper_type,Wrapper Type,wrapper type,General Computer Science,PENDING_REVIEW
+write_ahead_logging,Write Ahead Logging,write ahead logging,Database Systems,PENDING_REVIEW
+zero_shot_learning,Zero-Shot Learning,zero-shot learning,General Computer Science,PENDING_REVIEW
