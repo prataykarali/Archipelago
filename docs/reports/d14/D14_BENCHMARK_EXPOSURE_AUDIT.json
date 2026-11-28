@@ -1,0 +1,1271 @@
+{
+  "schema_version": "archipelago.d14.benchmark_exposure_audit.v1",
+  "generated_at_utc": "2026-11-28T02:16:21.594634+00:00",
+  "generated_by": "d14-benchmark-integrity",
+  "leakage_policy": "STRICT_NON_LEAKING: No held-out query text, gold answers, expected_concept strings, expected_canonical_doc values, qrels grades, or passage texts are included in this report.",
+  "baseline_snapshots": {
+    "original_610_concept_graph": {
+      "repo_relative_path": "host_inference/fixtures/okf_graph.json",
+      "sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+      "total_concepts": 610,
+      "total_edges": 1988,
+      "edge_breakdown": {
+        "requires": 267,
+        "unlocks": 387,
+        "related": 1334
+      },
+      "embedded_unique_passages": 775,
+      "embedded_source_entries": 1358,
+      "embedded_unique_source_docs": 60,
+      "hf_pinned_revision": "Prataykarali/graphier@86e29828"
+    },
+    "original_3025_passage_43_doc_corpus": {
+      "manifest_path": "docs/reports/D10_S4_CANDIDATE_PASSAGE_MANIFEST.json",
+      "manifest_sha256": "9965352d75840a802e47a50cdc8a434815005c26ca79e2eda00842f394d35dbf",
+      "passage_index_sha256": "93f6db39cb10d03beeb41c48469d138be27b62ed90aa59d20dd4c5107fbb2e52",
+      "document_count": 43,
+      "passage_count": 3025,
+      "hf_repo_id": "Prataykarali/Library_books",
+      "hf_library_revision": "b0561c76a4c5a7a8cb1fe3bd91b389280d504cbd",
+      "storage_note": "d10_candidate_passages.jsonl is intentionally excluded from Git; hosted in private staging Supabase Storage and deterministically rebuildable via scripts/ops/build_d10_candidate_passages.py."
+    },
+    "original_50_heldout_benchmark": {
+      "directory": "research/d5_sigir_evaluation",
+      "present_on_sigir_d12_recovery": true,
+      "present_on_sigir_demo_2027": true,
+      "present_on_main_c0d90b8": false,
+      "heldout_query_count": 50,
+      "heldout_category_distribution": {
+        "core_concept": 20,
+        "relational": 18,
+        "unsupported_abstention": 12
+      },
+      "qrels_tsv_lines": 445,
+      "human_judgment_pool_items": 731,
+      "human_judgment_pool_unique_queries": 50,
+      "human_judgment_pool_unique_passage_ids": 353,
+      "human_judgment_pool_unique_canonical_docs": 51,
+      "human_judgment_pool_completed_count": 0,
+      "human_judgment_pool_status": "PENDING_HUMAN_ANNOTATION",
+      "human_judgment_pool_passage_id_scheme": "<canonical_source_doc>::<canonical_chunk_id> (from okf_graph.json 775-passage index)",
+      "basename_overlap_731pool_docs_vs_d10_43docs": 26,
+      "systems_pooled": [
+        "bm25",
+        "snowflake_arctic_neural",
+        "feature_hashed_vector",
+        "archipelago_graph_assisted"
+      ],
+      "pool_depth_k": 5
+    },
+    "exposed_36_author_queries": {
+      "canonical_csv": "docs/sigir/D10_S3_ANSWERING_BEFORE_AFTER_36Q.csv",
+      "worksheet_csv": "docs/reports/D10_S4_AUTHOR_TEST_WORKSHEET.csv",
+      "worksheet_xlsx": "outputs/d11-a-author-diagnostic/D11_A_AUTHOR_DIAGNOSTIC_WORKSHEET.xlsx",
+      "query_count": 36,
+      "domain_count": 12,
+      "domain_distribution": {
+        "AI & Machine Learning": 3,
+        "Automata & Computation": 3,
+        "Compilers & Languages": 3,
+        "Computer Architecture": 3,
+        "Computer Networks": 3,
+        "Data Structures & Algorithms": 3,
+        "Database Systems": 3,
+        "Information Security": 3,
+        "Mathematics for Computing": 3,
+        "Operating Systems": 3,
+        "Probability & Statistics": 3,
+        "Software Engineering": 3
+      },
+      "d11_a_xlsx_id_match_count": 36,
+      "human_annotation_columns_populated": 0,
+      "exposure_classification": "EXPOSED_DEV_REGRESSION_CLEAN_DISJOINT_FROM_HELDOUT_50"
+    }
+  },
+  "overlap_audits": {
+    "thresholds": {
+      "high_overlap": "tfidf_cosine >= 0.45 OR content_token_jaccard >= 0.35",
+      "moderate_overlap": "0.25 <= tfidf_cosine < 0.45 OR 0.20 <= content_token_jaccard < 0.35",
+      "expected_concept_mention": "normalized held-out expected_concept (len>=4) appears as substring in normalized source query"
+    },
+    "d13_d10_36q_vs_heldout_50": {
+      "source_query_count": 36,
+      "heldout_query_count": 50,
+      "exact_match_count": 0,
+      "normalized_exact_match_count": 0,
+      "high_overlap_pair_count": 0,
+      "moderate_overlap_pair_count": 7,
+      "heldout_expected_concept_mention_count": 0,
+      "max_tfidf_cosine": 0.4139,
+      "max_content_token_jaccard": 0.2,
+      "high_overlap_pairs": [],
+      "moderate_overlap_pairs": [
+        {
+          "source_query_id": "D10-NET-C",
+          "source_domain": "Computer Networks",
+          "heldout_query_id": "Q13",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.1429,
+          "tfidf_cosine": 0.4139,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "D10-NET-B",
+          "source_domain": "Computer Networks",
+          "heldout_query_id": "Q13",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.1111,
+          "tfidf_cosine": 0.3664,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "D10-SEC-A",
+          "source_domain": "Information Security",
+          "heldout_query_id": "Q43",
+          "heldout_category": "unsupported_abstention",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.3053,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "D10-AI-B",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q10",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.3044,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "D10-MTH-A",
+          "source_domain": "Mathematics for Computing",
+          "heldout_query_id": "Q29",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.1818,
+          "tfidf_cosine": 0.2604,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "D10-AI-B",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q02",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.1,
+          "tfidf_cosine": 0.2573,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "D10-MTH-C",
+          "source_domain": "Mathematics for Computing",
+          "heldout_query_id": "Q29",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.1667,
+          "tfidf_cosine": 0.2502,
+          "heldout_expected_concept_mentioned": false
+        }
+      ],
+      "concept_mention_pairs_ids_only": [],
+      "verdict": "PASS_CLEAN_DISJOINT",
+      "guidance": "0 exact, 0 normalized-exact, 0 high-overlap, 0 held-out concept mentions. Safe for D14.1-D14.7 development and regression testing."
+    },
+    "d10_s4_preliminary_6q_vs_heldout_50": {
+      "source_query_count": 6,
+      "heldout_query_count": 50,
+      "exact_match_count": 0,
+      "normalized_exact_match_count": 0,
+      "high_overlap_pair_count": 3,
+      "moderate_overlap_pair_count": 4,
+      "heldout_expected_concept_mention_count": 8,
+      "max_tfidf_cosine": 1.0,
+      "max_content_token_jaccard": 1.0,
+      "high_overlap_pairs": [
+        {
+          "source_query_id": "S4-SPANNER",
+          "source_domain": "Distributed Systems",
+          "heldout_query_id": "Q39",
+          "heldout_category": "unsupported_abstention",
+          "content_token_jaccard": 1.0,
+          "tfidf_cosine": 1.0,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "S4-RAG",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q05",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.5,
+          "tfidf_cosine": 0.6995,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "S4-TRANSFORMER",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q31",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.3333,
+          "tfidf_cosine": 0.4522,
+          "heldout_expected_concept_mentioned": true
+        }
+      ],
+      "moderate_overlap_pairs": [
+        {
+          "source_query_id": "S4-TRANSFORMER",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q03",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.4112,
+          "heldout_expected_concept_mentioned": true
+        },
+        {
+          "source_query_id": "S4-TRANSFORMER",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q01",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.3928,
+          "heldout_expected_concept_mentioned": true
+        },
+        {
+          "source_query_id": "S4-RAG",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q04",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.125,
+          "tfidf_cosine": 0.2613,
+          "heldout_expected_concept_mentioned": true
+        },
+        {
+          "source_query_id": "S4-LORA",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q06",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.2364,
+          "heldout_expected_concept_mentioned": false
+        }
+      ],
+      "concept_mention_pairs_ids_only": [
+        {
+          "source_query_id": "S4-TRANSFORMER",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q01",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.3928
+        },
+        {
+          "source_query_id": "S4-TRANSFORMER",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q03",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.4112
+        },
+        {
+          "source_query_id": "S4-TRANSFORMER",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q31",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.3333,
+          "tfidf_cosine": 0.4522
+        },
+        {
+          "source_query_id": "S4-TRANSFORMER",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q36",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.0,
+          "tfidf_cosine": 0.0
+        },
+        {
+          "source_query_id": "S4-RAG",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q04",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.125,
+          "tfidf_cosine": 0.2613
+        },
+        {
+          "source_query_id": "S4-RAG",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q23",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.0,
+          "tfidf_cosine": 0.0
+        },
+        {
+          "source_query_id": "S4-RAG",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q32",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.0769,
+          "tfidf_cosine": 0.1222
+        },
+        {
+          "source_query_id": "S4-RAG",
+          "source_domain": "AI & Machine Learning",
+          "heldout_query_id": "Q37",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.0909,
+          "tfidf_cosine": 0.1671
+        }
+      ],
+      "verdict": "HIGH_CONTAMINATION_RISK_RESTRICTED",
+      "guidance": "3 high-overlap pairs (including S4-SPANNER <-> Q39 at 1.000 content-token Jaccard/TF-IDF, S4-RAG <-> Q05 at 0.699 TF-IDF) and 8 expected-concept mentions. D14.1-D14.7 workers MUST NOT tune retrieval/concept/abstention rules on preliminary_regression_6q."
+    },
+    "d5_dev_15_vs_heldout_50": {
+      "source_query_count": 15,
+      "heldout_query_count": 50,
+      "exact_match_count": 0,
+      "normalized_exact_match_count": 0,
+      "high_overlap_pair_count": 6,
+      "moderate_overlap_pair_count": 12,
+      "heldout_expected_concept_mention_count": 8,
+      "max_tfidf_cosine": 0.6994,
+      "max_content_token_jaccard": 0.6,
+      "high_overlap_pairs": [
+        {
+          "source_query_id": "DEV10",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q34",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.6,
+          "tfidf_cosine": 0.6994,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV03",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q06",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.5,
+          "tfidf_cosine": 0.6347,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV06",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q03",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.3333,
+          "tfidf_cosine": 0.5634,
+          "heldout_expected_concept_mentioned": true
+        },
+        {
+          "source_query_id": "DEV09",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q07",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.3333,
+          "tfidf_cosine": 0.5201,
+          "heldout_expected_concept_mentioned": true
+        },
+        {
+          "source_query_id": "DEV10",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q20",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.25,
+          "tfidf_cosine": 0.4721,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV03",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q27",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.3333,
+          "tfidf_cosine": 0.4506,
+          "heldout_expected_concept_mentioned": false
+        }
+      ],
+      "moderate_overlap_pairs": [
+        {
+          "source_query_id": "DEV09",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q27",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.25,
+          "tfidf_cosine": 0.3855,
+          "heldout_expected_concept_mentioned": true
+        },
+        {
+          "source_query_id": "DEV08",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q28",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.25,
+          "tfidf_cosine": 0.3719,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV11",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q16",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.2857,
+          "tfidf_cosine": 0.36,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV06",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q31",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.3239,
+          "heldout_expected_concept_mentioned": true
+        },
+        {
+          "source_query_id": "DEV05",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q16",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.322,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV06",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q02",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.25,
+          "tfidf_cosine": 0.2646,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV03",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q26",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.1667,
+          "tfidf_cosine": 0.2598,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV01",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q02",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.25,
+          "tfidf_cosine": 0.2458,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV06",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q21",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.2178,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV01",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q21",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.2023,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV06",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q30",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.1982,
+          "heldout_expected_concept_mentioned": false
+        },
+        {
+          "source_query_id": "DEV01",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q30",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.1841,
+          "heldout_expected_concept_mentioned": false
+        }
+      ],
+      "concept_mention_pairs_ids_only": [
+        {
+          "source_query_id": "DEV06",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q03",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.3333,
+          "tfidf_cosine": 0.5634
+        },
+        {
+          "source_query_id": "DEV06",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q31",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.2,
+          "tfidf_cosine": 0.3239
+        },
+        {
+          "source_query_id": "DEV09",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q07",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.3333,
+          "tfidf_cosine": 0.5201
+        },
+        {
+          "source_query_id": "DEV09",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q27",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.25,
+          "tfidf_cosine": 0.3855
+        },
+        {
+          "source_query_id": "DEV11",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q04",
+          "heldout_category": "core_concept",
+          "content_token_jaccard": 0.1429,
+          "tfidf_cosine": 0.1576
+        },
+        {
+          "source_query_id": "DEV11",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q23",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.0,
+          "tfidf_cosine": 0.0
+        },
+        {
+          "source_query_id": "DEV11",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q32",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.0833,
+          "tfidf_cosine": 0.0737
+        },
+        {
+          "source_query_id": "DEV11",
+          "source_domain": "core_concept",
+          "heldout_query_id": "Q37",
+          "heldout_category": "relational",
+          "content_token_jaccard": 0.1,
+          "tfidf_cosine": 0.1008
+        }
+      ],
+      "verdict": "RESTRICTED_IN_DOMAIN_DEV_SPLIT",
+      "guidance": "6 high-overlap pairs and 8 expected-concept mentions (expected for same-domain dev split). Coarse sanity checks only; never tune per-concept overrides."
+    }
+  },
+  "protected_manuscript_directories_off_limits": [
+    "/home/pratay-karali/Desktop/sigit_manu/",
+    "/home/pratay-karali/Desktop/sigit_manu_d11_sync_v1/"
+  ],
+  "protected_files_inventory": [
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/D5_1_EVALUATION_REPORT.md",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 15197,
+      "sha256": "87edbf906dcae28d2de98f79949edc968b9723c6d89457e9ea0c4661ad95f021",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d5_eval_report_or_result",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Historical D5 evaluation report/result. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/D5_3_SCIENTIFIC_EVALUATION_REPORT.md",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 11974,
+      "sha256": "d2d12ffc20994e5e5d7df0997b3805359588b0e413efdfe7be47e85007946ab3",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d5_eval_report_or_result",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Historical D5 evaluation report/result. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/D5_EVALUATION_REPORT.md",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 11307,
+      "sha256": "e5ec44f9c78a1977dee135fc1cd741be67b430a8ae9480acaed04af50a39af9c",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d5_eval_report_or_result",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Historical D5 evaluation report/result. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/HUMAN_ANNOTATION_AND_ADJUDICATION_PROTOCOL.md",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 9543,
+      "sha256": "9163f465518d7d5a966174f4be659532480867a58bd7dd2d4b32da0f660a07e3",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d5_eval_report_or_result",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Historical D5 evaluation report/result. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/REPRODUCIBILITY.md",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 5362,
+      "sha256": "26aa5be3a35b5a30ef108c2ba943fcd5d7f99a899f921fb27ce09db848010316",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d5_eval_report_or_result",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Historical D5 evaluation report/result. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/build_blinded_pool.py",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 13202,
+      "sha256": "635d5ff290a4127509ecd773d115c8c5c991e33a2b7697365f7ea8dff1fa54f0",
+      "quarantine_status": "IMMUTABLE_BENCHMARK_SCRIPT",
+      "artifact_category": "d5_eval_script",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Frozen D5 evaluation utility."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/citation_grounding_audit.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 26001,
+      "sha256": "d402fd06cb3cfddc8cc7e1d4136440681bf2c94bb7772cf7b60b5f2bc8a25d11",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d5_eval_report_or_result",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Historical D5 evaluation report/result. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/concept_embeddings_snowflake.npy",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 1874048,
+      "sha256": "db7a019a684b343c92c1a76aac7ebe2f1208362e560c9fffb8b91eec3818a3f3",
+      "quarantine_status": "IMMUTABLE_BENCHMARK_BASELINE",
+      "artifact_category": "embedding_cache",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Frozen 610-concept Snowflake Arctic embeddings."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/corpus_embeddings_snowflake.npy",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 2380928,
+      "sha256": "f2fe942e6c07d95337ec22b1bcaaa1e0666e33ee47012518db7a302be7ea26c2",
+      "quarantine_status": "IMMUTABLE_BENCHMARK_BASELINE",
+      "artifact_category": "embedding_cache",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Frozen 775-passage Snowflake Arctic embeddings."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/d5_1_evaluation_results.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 26441,
+      "sha256": "d7cb49ca79f67a17837b0538f78bd820a2dfdd8025d55f453f20173fdb5eded4",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d5_eval_report_or_result",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Historical D5 evaluation report/result. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 29544,
+      "sha256": "43e83ba0d2bb30ce5a253079ab7534cee0e43b3f1467804ae40099e4304162f9",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d5_eval_report_or_result",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Historical D5 evaluation report/result. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/d5_evaluation_results.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 15585,
+      "sha256": "b4768e13ca8dd0baa2f7230126ff744889132f31ac3255728dc4955a7968d6b9",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d5_eval_report_or_result",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Historical D5 evaluation report/result. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/d5_evaluation_results_exploratory_legacy.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 15826,
+      "sha256": "dadac7ccce8be76ca1d4a74ae83b0e306a990029136ea8ed7aae8357b8858908",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d5_eval_report_or_result",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Historical D5 evaluation report/result. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/d5_graph_slice.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 29407,
+      "sha256": "55140e114dcf192cde59d95271a4cb81f1d099fb4de44b0135c6d95f3e455590",
+      "quarantine_status": "IMMUTABLE_BENCHMARK_BASELINE",
+      "artifact_category": "gold_graph_slice",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "40 verified + 5 quarantined relationships across 2 domains. Do not overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/embedding_manifest.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 1865,
+      "sha256": "76a9312e7bfbc57235a0d3c5726cb02bbd9e1414a18c5e62fc774ffd81688a56",
+      "quarantine_status": "IMMUTABLE_BENCHMARK_BASELINE",
+      "artifact_category": "embedding_manifest",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Pins Snowflake/snowflake-arctic-embed-m @ fc74610d and okf_graph.json (775 passages, sha256=9818ac0e...)."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/human_annotation_worksheet.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 1359724,
+      "sha256": "e5f69822dc554bd6610657a2ee6111a96b52d12a155f3d793d38a1c10a42b222",
+      "quarantine_status": "HARD_QUARANTINE_BLANK_HUMAN_FIELDS",
+      "artifact_category": "human_judgment_pool",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "731-item pooled top-5 human relevance worksheet (0/731 populated; all reviewer_assessment=null). NEVER populate or overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/human_review_records.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 31392,
+      "sha256": "efc4eeebf58c5d30fe972121d008feaf510aa4dbaa6f294f33fd3f1db7daab9c",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "graph_human_review",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "40 human-reviewed graph edge records for d5_graph_slice.json. Read-only historical evidence."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/passage_qrels.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 136806,
+      "sha256": "b3e55ab147907940c6cd90ea5273284558037363066c4cfdd199efa0743bc8a2",
+      "quarantine_status": "HARD_QUARANTINE_OFF_LIMITS",
+      "artifact_category": "heldout_qrels",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Passage-level qrels for held-out 50 queries. Strictly off-limits to D14.1-D14.7 workers."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/qrels.tsv",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 22103,
+      "sha256": "ffb36798d9340f7d4cb122d65afd2dec55811e6650754a397d91a90751c968a1",
+      "quarantine_status": "HARD_QUARANTINE_OFF_LIMITS",
+      "artifact_category": "heldout_qrels",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "445 TREC qrels lines for held-out 50 queries. Strictly off-limits to D14.1-D14.7 workers."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/quarantined_edges.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 1824,
+      "sha256": "dbc912c9af207720005cd2924e2a7d05dbe18bb9492085ffbd9787a8f20c5ded",
+      "quarantine_status": "IMMUTABLE_BENCHMARK_BASELINE",
+      "artifact_category": "gold_graph_slice",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Quarantined edges record for D5 graph evaluation. Do not overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/queries_dev_15.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 2736,
+      "sha256": "43893328d55fc5cb0b6f583ee7a20ab0eb36c95e686122db75703d6e6dadbd5b",
+      "quarantine_status": "RESTRICTED_DEV_ONLY",
+      "artifact_category": "dev_queries",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "15 in-domain dev queries (6 high-overlap pairs with Heldout-50). Coarse sanity checks only; no concept-level tuning."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/queries_heldout_50.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 18880,
+      "sha256": "9e39430942b4f00d34911848cbe61a96532c29ffaee76f0d82ce69496f71103a",
+      "quarantine_status": "HARD_QUARANTINE_OFF_LIMITS",
+      "artifact_category": "heldout_queries",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "50 held-out SIGIR evaluation queries + gold fields. Strictly off-limits to D14.1-D14.7 workers."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/reviewer_provenance.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 2732,
+      "sha256": "7b1608e57741cad5e0b1dfdbaea0f80a7b62b3adc391c9e4837223dee5a76c31",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d5_eval_report_or_result",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Historical D5 evaluation report/result. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/unjudged_qrels.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 3666,
+      "sha256": "33a6e531457435f39ec3f5e5c3e234a407a922e124c79da02e2a709dec0a96be",
+      "quarantine_status": "HARD_QUARANTINE_OFF_LIMITS",
+      "artifact_category": "heldout_qrels",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Unjudged qrels tracking for held-out 50 queries. Strictly off-limits to D14.1-D14.7 workers."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/ranked_runs/archipelago_graph_assisted.run",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 12209,
+      "sha256": "61e425fa7add8d97375efc1417cb3585514cfd9efaa41fbc010f57bb4444fabe",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "baseline_ranked_run",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Frozen D5 baseline TREC run file. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/ranked_runs/bm25.run",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 17098,
+      "sha256": "1df0d3a0ab8dbfec01b89b044b167097e31cc919da8cb6a184e57575f5908446",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "baseline_ranked_run",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Frozen D5 baseline TREC run file. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/ranked_runs/feature_hashed_vector.run",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 22741,
+      "sha256": "7d0681efee7f35445a2307fbbc07856add2a94f9f1e873bfa4b3a7ab4956a9d0",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "baseline_ranked_run",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Frozen D5 baseline TREC run file. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/ranked_runs/snowflake_arctic_neural.run",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 23405,
+      "sha256": "b92152490a46aa3c43d1588267f3ae81ad4de20c361e098d4d63df5239a4a0fd",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "baseline_ranked_run",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "Frozen D5 baseline TREC run file. Never overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/worksheets/adjudication_worksheet.csv",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 61967,
+      "sha256": "fbc2ec9f0040ca8a190f38cc14da0fef772d8b0883845c09b93fe45c4fb24d56",
+      "quarantine_status": "HARD_QUARANTINE_BLANK_HUMAN_FIELDS",
+      "artifact_category": "human_judgment_pool",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "731-item Adjudication worksheet (0/731 populated). NEVER populate or overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/worksheets/pool_key_SEALED.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 236576,
+      "sha256": "504d3ac13cf8f689830512a5f6a36d6d6c21bc2408c4f013a1b02a9e8e2757ba",
+      "quarantine_status": "HARD_QUARANTINE_SEALED",
+      "artifact_category": "blinded_pool_key",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "SEALED system-to-blinded_candidate_id key for 731-item human judgment pool. NEVER open or modify."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/worksheets/reviewer_A_worksheet.csv",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 904915,
+      "sha256": "34157ed5a5af0c1e517b08a8a17fa74dfb455803280d642225621c4b4b6c705c",
+      "quarantine_status": "HARD_QUARANTINE_BLANK_HUMAN_FIELDS",
+      "artifact_category": "human_judgment_pool",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "731-item Reviewer A worksheet (0/731 populated). NEVER populate or overwrite."
+    },
+    {
+      "repo_relative_path": "research/d5_sigir_evaluation/worksheets/reviewer_B_worksheet.csv",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 904915,
+      "sha256": "34157ed5a5af0c1e517b08a8a17fa74dfb455803280d642225621c4b4b6c705c",
+      "quarantine_status": "HARD_QUARANTINE_BLANK_HUMAN_FIELDS",
+      "artifact_category": "human_judgment_pool",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027",
+        "sigir/d9-scientific-manuscript-sprint",
+        "sigir/swarm-c-evaluation-manuscript"
+      ],
+      "notes": "731-item Reviewer B worksheet (0/731 populated). NEVER populate or overwrite."
+    },
+    {
+      "repo_relative_path": "host_inference/fixtures/okf_graph.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 6489729,
+      "sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+      "quarantine_status": "IMMUTABLE_BASELINE_VERSIONED_COPY_REQUIRED",
+      "artifact_category": "baseline_610_concept_graph",
+      "present_on_branches": [
+        "main",
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "Original 610-concept, 1,988-edge graph (267 requires, 387 unlocks, 1,334 related) + 775 unique passages across 60 source docs. D14.2 must write versioned D14 graph or preserve v1 snapshot."
+    },
+    {
+      "repo_relative_path": "research/d4-demo-graph-candidate/demo_graph_candidate.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 2175078,
+      "sha256": "65ebbfc4bcdee49d337a6415e6399fc41456cf452c9a0eccd58c42efcca9f3cb",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "d4_graph_candidate",
+      "present_on_branches": [
+        "main",
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "Historical D4 demo graph candidate snapshot."
+    },
+    {
+      "repo_relative_path": "docs/reports/D10_S4_CANDIDATE_PASSAGE_MANIFEST.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 10001,
+      "sha256": "9965352d75840a802e47a50cdc8a434815005c26ca79e2eda00842f394d35dbf",
+      "quarantine_status": "IMMUTABLE_CORPUS_V2_MANIFEST",
+      "artifact_category": "baseline_3025_passage_corpus_manifest",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "Original 43-document, 3,025-passage corpus manifest (passage_index_sha256=93f6db39cb10d03beeb41c48469d138be27b62ed90aa59d20dd4c5107fbb2e52, HF Prataykarali/Library_books@b0561c76a4c5a7a8cb1fe3bd91b389280d504cbd). JSONL itself stays outside Git."
+    },
+    {
+      "repo_relative_path": "data/catalogs/hf_dataset_manifest.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 2681,
+      "sha256": "ba284c6f861f998d62afa708a5cae1f5f71a634d8db8cee4871ba0c2e99ce421",
+      "quarantine_status": "VERSIONED_MANIFEST_PRESERVE_V1",
+      "artifact_category": "hf_corpus_inventory",
+      "present_on_branches": [
+        "main",
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "HF Library_books catalog inventory used by build_d10_candidate_passages.py."
+    },
+    {
+      "repo_relative_path": "docs/sigir/D10_S3_ANSWERING_BEFORE_AFTER_36Q.csv",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 26512,
+      "sha256": "c10a7da52aabf8e31ceb167b6bb856155065170e2a48a12d54dfec50be7e7f99",
+      "quarantine_status": "EXPOSED_DEV_REGRESSION_PRESERVE_BLANK_HUMAN_COLS",
+      "artifact_category": "exposed_36q_author_queries",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "36 author-tested queries across 12 academic domains (0/36 human cols populated). Safe for D14.1-D14.7 dev/regression; NEVER overwrite historical file or blank human_* columns."
+    },
+    {
+      "repo_relative_path": "docs/reports/D10_S4_AUTHOR_TEST_WORKSHEET.csv",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 57215,
+      "sha256": "27127ce44f026ab342e912440fbae7f81ac8ba784b405ea3c85dd541a764fc48",
+      "quarantine_status": "MIXED_EXPOSURE_DO_NOT_TUNE_PRELIM_6Q",
+      "artifact_category": "mixed_36q_plus_6q_worksheet",
+      "present_on_branches": [
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "Contains 36 clean author_diagnostic_36q_12domains queries + 6 HIGH-EXPOSURE preliminary_regression_6q queries (3 high-overlap pairs with Heldout-50). NEVER tune on preliminary_regression_6q or populate blank human_* columns."
+    },
+    {
+      "repo_relative_path": "outputs/d11-a-author-diagnostic/D11_A_AUTHOR_DIAGNOSTIC_WORKSHEET.xlsx",
+      "verified_from_worktree": "/home/pratay-karali/Desktop/archipelago-sigir-demo",
+      "exists": true,
+      "size_bytes": 14175,
+      "sha256": "30ddfbee8b57c263beede4524fa9738b822a4fdfe762c96dfc66bdac6389df08",
+      "quarantine_status": "EXPOSED_DEV_REGRESSION_PRESERVE_BLANK_HUMAN_COLS",
+      "artifact_category": "exposed_36q_author_worksheet_xlsx",
+      "present_on_branches": [
+        "sigir/demo-2027"
+      ],
+      "notes": "6-round x 6-query workbook containing the exact same 36 D10-* queries (100% ID match with D10_S3_ANSWERING_BEFORE_AFTER_36Q.csv). Do not overwrite."
+    },
+    {
+      "repo_relative_path": "pilot_corpus/gold/gold_attention.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 3195,
+      "sha256": "10e3602384facc57add30b1b1c18273cfd0f65b70b78061f1bfcbb2e8149a993",
+      "quarantine_status": "IMMUTABLE_GOLD_GRAPH",
+      "artifact_category": "pilot_gold_graph",
+      "present_on_branches": [
+        "main",
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "Pilot gold graph (Attention). Never overwrite."
+    },
+    {
+      "repo_relative_path": "pilot_corpus/gold/gold_curriculum.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 1138,
+      "sha256": "62a4846cd0069dcb161e1522bf2be433b3d659e0faddc614d2257205be0dd69a",
+      "quarantine_status": "IMMUTABLE_GOLD_GRAPH",
+      "artifact_category": "pilot_gold_graph",
+      "present_on_branches": [
+        "main",
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "Pilot gold graph (Curriculum). Never overwrite."
+    },
+    {
+      "repo_relative_path": "pilot_corpus/gold/gold_lora.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 2659,
+      "sha256": "91a1993e61d7d1e2ff1bd669ef82efaa6ac1b7bb0feff1ac2d23c7bd49ad55d1",
+      "quarantine_status": "IMMUTABLE_GOLD_GRAPH",
+      "artifact_category": "pilot_gold_graph",
+      "present_on_branches": [
+        "main",
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "Pilot gold graph (LoRA). Never overwrite."
+    },
+    {
+      "repo_relative_path": "pilot_corpus/gold_eval_results.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 6699,
+      "sha256": "0f54dc3d4d7ac561c4c59b3c031dd4a87f2402fb1ee7fc8d18cc211d4b4acaa2",
+      "quarantine_status": "IMMUTABLE_HISTORICAL_RESULT",
+      "artifact_category": "pilot_gold_eval",
+      "present_on_branches": [
+        "main",
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "Historical pilot gold eval results. Never overwrite."
+    },
+    {
+      "repo_relative_path": "okf/gold/gold_attention.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 3195,
+      "sha256": "10e3602384facc57add30b1b1c18273cfd0f65b70b78061f1bfcbb2e8149a993",
+      "quarantine_status": "IMMUTABLE_GOLD_GRAPH",
+      "artifact_category": "okf_gold_graph",
+      "present_on_branches": [
+        "main",
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "OKF gold graph (Attention). Never overwrite."
+    },
+    {
+      "repo_relative_path": "okf/gold/gold_lora.json",
+      "verified_from_worktree": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920",
+      "exists": true,
+      "size_bytes": 2659,
+      "sha256": "91a1993e61d7d1e2ff1bd669ef82efaa6ac1b7bb0feff1ac2d23c7bd49ad55d1",
+      "quarantine_status": "IMMUTABLE_GOLD_GRAPH",
+      "artifact_category": "okf_gold_graph",
+      "present_on_branches": [
+        "main",
+        "sigir/d12-recovery",
+        "sigir/demo-2027"
+      ],
+      "notes": "OKF gold graph (LoRA). Never overwrite."
+    }
+  ]
+}

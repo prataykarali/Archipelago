@@ -1,0 +1,278 @@
+{
+  "schema": "archipelago.d14_baseline_manifest.v1",
+  "generated_at_utc": "2026-11-28T02:14:57.708173+00:00",
+  "audit_owner": "d14-forensic-audit",
+  "phase": "D14.0",
+  "git_snapshots": {
+    "d14_workspace_branch": "d14_scientific_recovery_stabilization",
+    "d14_workspace_sha": "c0d90b8484bbf48e605d4dcffb6975bdb6a09e2e",
+    "sigir_d12_recovery_head_sha": "fe8887c878e27f1770690236513f0f6c79c37d7c",
+    "reported_d12_release_merge_sha": "809a70a6434ee18fce65250b98207fa52b2ae8f1",
+    "d11_a4_frozen_tag_sha": "3c724431edd11e8b987e9150b7a526675cc6501f",
+    "sigir_demo_2027_sha": "71271ecad00ec30a4339ab6d072d9b5dbaf07861",
+    "main_local_sha": "c0d90b8484bbf48e605d4dcffb6975bdb6a09e2e",
+    "origin_main_sha": "9f15cacb7104ad634da72902fb7ecb8fdd665956",
+    "merge_base_main_vs_d12_recovery": "ef4e777988d463986b1f1aba54581c2e81e84d73"
+  },
+  "knowledge_graph_baseline": {
+    "verified_610_concept_baseline": true,
+    "concept_count": 610,
+    "node_count": 610,
+    "edge_count": 1988,
+    "reported_stats": {
+      "total_concepts": 610,
+      "total_edges": 1988,
+      "requires_edges": 267,
+      "unlocks_edges": 387,
+      "related_edges": 1334
+    },
+    "edge_type_breakdown": {
+      "requires": 196,
+      "prerequisite": 39,
+      "REQUIRES": 32,
+      "enables": 357,
+      "unlocks": 8,
+      "UNLOCKS": 22,
+      "uses": 144,
+      "part_of": 156,
+      "contrasts_with": 96,
+      "co_mention": 891,
+      "variant_of": 1,
+      "evaluated_by": 2,
+      "RELATED": 44
+    },
+    "hf_dataset_repo": "Prataykarali/graphier",
+    "hf_dataset_revision": "86e29828c38dbf0f8cea5d50ed6a341ccde3a8f3",
+    "files": {
+      "d12_recovery_fixture": {
+        "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/host_inference/fixtures/okf_graph.json",
+        "exists": true,
+        "size_bytes": 6489729,
+        "sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+        "mtime_utc": "2026-11-27T14:48:17.840628+00:00"
+      },
+      "d14_workspace_fixture": {
+        "path": "/home/pratay-karali/.gemini/antigravity/worktrees/archipelago/d14_scientific_recovery_stabilization/host_inference/fixtures/okf_graph.json",
+        "exists": true,
+        "size_bytes": 6489729,
+        "sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+        "mtime_utc": "2026-11-28T02:09:15.710000+00:00"
+      },
+      "demo_2027_fixture": {
+        "path": "/home/pratay-karali/Desktop/archipelago-sigir-demo/host_inference/fixtures/okf_graph.json",
+        "exists": true,
+        "size_bytes": 6489729,
+        "sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+        "mtime_utc": "2026-11-24T11:05:24.102543+00:00"
+      }
+    },
+    "identical_across_all_three_worktrees": true
+  },
+  "document_registry_and_catalog_baseline": {
+    "ebook_shelf_count": 91,
+    "hf_paths_count": 51,
+    "holdings_count": 109,
+    "journal_issues_count": 1212,
+    "ebook_stats_label": "91 reader-backed titles \u00b7 40 Pearson eBooks \u00b7 51 Hugging Face PDFs \u00b7 109 catalog holdings",
+    "files": {
+      "library_manifest_d12": {
+        "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/host_inference/fixtures/library_manifest.json",
+        "exists": true,
+        "size_bytes": 650366,
+        "sha256": "8a0b26d8214fb6ad4d8009e2b2bdefecc2e23ab2307e8778658c287b85af43b2",
+        "mtime_utc": "2026-11-27T14:48:17.767627+00:00"
+      },
+      "library_manifest_d14": {
+        "path": "/home/pratay-karali/.gemini/antigravity/worktrees/archipelago/d14_scientific_recovery_stabilization/host_inference/fixtures/library_manifest.json",
+        "exists": true,
+        "size_bytes": 650366,
+        "sha256": "8a0b26d8214fb6ad4d8009e2b2bdefecc2e23ab2307e8778658c287b85af43b2",
+        "mtime_utc": "2026-11-28T02:09:15.649000+00:00"
+      },
+      "pearson_bookshelf_d12": {
+        "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/host_inference/fixtures/pearson_bookshelf.json",
+        "exists": true,
+        "size_bytes": 28628,
+        "sha256": "414d334fedcab1bd9e2fe1d98b29834fcd024a6d64265e9770f08458623f319f",
+        "mtime_utc": "2026-11-27T14:48:17.842628+00:00"
+      },
+      "pearson_bookshelf_d14": {
+        "path": "/home/pratay-karali/.gemini/antigravity/worktrees/archipelago/d14_scientific_recovery_stabilization/host_inference/fixtures/pearson_bookshelf.json",
+        "exists": true,
+        "size_bytes": 25306,
+        "sha256": "507c21e1fd32a61ef776f77bb20708c628d24cb685d5e0e3dd9335af45a1ceca",
+        "mtime_utc": "2026-11-28T02:09:15.711000+00:00"
+      },
+      "hf_files_d12": {
+        "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/host_inference/fixtures/hf_files.json",
+        "exists": true,
+        "size_bytes": 4182,
+        "sha256": "cbe1acf18501d9195654023b01fe4d1d88c90b60ed3a600eb618b2f74e71792d",
+        "mtime_utc": "2026-11-27T14:48:17.762627+00:00"
+      },
+      "live_scholarly_manifest_d12": {
+        "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/host_inference/fixtures/live_scholarly_manifest.json",
+        "exists": true,
+        "size_bytes": 42237,
+        "sha256": "5dadea2425651145ab7712cca0b9c7b1c338f62d938a4ecb67b0d8ad3247be73",
+        "mtime_utc": "2026-11-27T14:48:17.768627+00:00"
+      }
+    }
+  },
+  "passage_index_baseline": {
+    "verified_3025_passage_43_doc_baseline": true,
+    "document_count": 43,
+    "passage_count": 3025,
+    "passage_index_sha256": "93f6db39cb10d03beeb41c48469d138be27b62ed90aa59d20dd4c5107fbb2e52",
+    "graph_sha256_referenced": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+    "hf_repo_id": "Prataykarali/Library_books",
+    "hf_library_revision": "b0561c76a4c5a7a8cb1fe3bd91b389280d504cbd",
+    "storage_note": "Remote JSONL fetched at runtime from Supabase storage into /tmp/archipelago_d10_candidate_passages.jsonl and verified against D10_S4_CANDIDATE_PASSAGE_MANIFEST.json.",
+    "manifest_file": {
+      "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/docs/reports/D10_S4_CANDIDATE_PASSAGE_MANIFEST.json",
+      "exists": true,
+      "size_bytes": 10001,
+      "sha256": "9965352d75840a802e47a50cdc8a434815005c26ca79e2eda00842f394d35dbf",
+      "mtime_utc": "2026-11-27T14:48:17.592626+00:00"
+    }
+  },
+  "evaluation_configs_and_benchmarks": {
+    "chat_reply_prompt_d12": {
+      "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/host_inference/engine/prompts/chat_reply.txt",
+      "exists": true,
+      "size_bytes": 1312,
+      "sha256": "25085debbeb277d8fe54f36fb8e906c3e207073e144d848f2d0bbde10f125cf5",
+      "mtime_utc": "2026-11-27T14:48:17.758627+00:00"
+    },
+    "reply_templates_d12": {
+      "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/host_inference/engine/reply_templates.json",
+      "exists": true,
+      "size_bytes": 73998,
+      "sha256": "d015289a2a72527141ea4f96dd2b0b44abc26fe882af58d158451c8f7339f514",
+      "mtime_utc": "2026-11-27T14:48:17.760627+00:00"
+    },
+    "routing_constants_d12": {
+      "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/host_inference/engine/routing_constants.py",
+      "exists": true,
+      "size_bytes": 1248,
+      "sha256": "5246969b4cf08fd7384389d294acafc1384f4cc3095d6d0483087e4ffe60d464",
+      "mtime_utc": "2026-11-27T14:48:17.761627+00:00"
+    },
+    "heldout_50_queries_quarantined": {
+      "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/research/d5_sigir_evaluation/queries_heldout_50.json",
+      "exists": true,
+      "size_bytes": 18880,
+      "sha256": "9e39430942b4f00d34911848cbe61a96532c29ffaee76f0d82ce69496f71103a",
+      "mtime_utc": "2026-11-27T14:48:18.240630+00:00"
+    },
+    "passage_qrels_quarantined": {
+      "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/research/d5_sigir_evaluation/passage_qrels.json",
+      "exists": true,
+      "size_bytes": 136806,
+      "sha256": "b3e55ab147907940c6cd90ea5273284558037363066c4cfdd199efa0743bc8a2",
+      "mtime_utc": "2026-11-27T14:48:18.239630+00:00"
+    },
+    "d10_s4_graph_edge_quarantine": {
+      "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/docs/reports/D10_S4_GRAPH_EDGE_QUARANTINE.csv",
+      "exists": true,
+      "size_bytes": 9984,
+      "sha256": "3246ac4eee3cf4d0f977b0111cb7f1303553719c70b8a3504134a3bbd0a23a1f",
+      "mtime_utc": "2026-11-27T14:48:17.592626+00:00"
+    },
+    "d10_s8_release_manifest": {
+      "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/docs/reports/D10_S8_RELEASE_MANIFEST.v0.1.0.json",
+      "exists": true,
+      "size_bytes": 7214,
+      "sha256": "326106ed3e1c958e037a6bf2f342f67445ce905b58fbcd49aae98466dbd0339c",
+      "mtime_utc": "2026-11-27T14:48:17.594626+00:00"
+    }
+  },
+  "d13_and_36q_testing_artifacts": {
+    "author_36q_query_count": 36,
+    "author_36q_domain_count": 12,
+    "author_36q_domains": {
+      "Operating Systems": 3,
+      "Database Systems": 3,
+      "Data Structures & Algorithms": 3,
+      "Computer Networks": 3,
+      "Compilers & Languages": 3,
+      "Automata & Computation": 3,
+      "Mathematics for Computing": 3,
+      "Probability & Statistics": 3,
+      "Information Security": 3,
+      "AI & Machine Learning": 3,
+      "Software Engineering": 3,
+      "Computer Architecture": 3
+    },
+    "author_36q_before_after_csv": {
+      "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/docs/sigir/D10_S3_ANSWERING_BEFORE_AFTER_36Q.csv",
+      "exists": true,
+      "size_bytes": 26512,
+      "sha256": "c10a7da52aabf8e31ceb167b6bb856155065170e2a48a12d54dfec50be7e7f99",
+      "mtime_utc": "2026-11-27T14:48:17.615269+00:00"
+    },
+    "author_test_worksheet_csv": {
+      "path": "/home/pratay-karali/.gemini/antigravity/worktrees/66c355ef-147d-4e8e-a8e2-037d4b340ff7/subagent-D11-A-2-Verification--36Q-Diagnostic---Stage-3-Consolidator-self-edf9d920/docs/reports/D10_S4_AUTHOR_TEST_WORKSHEET.csv",
+      "exists": true,
+      "size_bytes": 57215,
+      "sha256": "27127ce44f026ab342e912440fbae7f81ac8ba784b405ea3c85dd541a764fc48",
+      "mtime_utc": "2026-11-27T14:48:17.589626+00:00"
+    },
+    "author_diagnostic_xlsx_demo": {
+      "path": "/home/pratay-karali/Desktop/archipelago-sigir-demo/outputs/d11-a-author-diagnostic/D11_A_AUTHOR_DIAGNOSTIC_WORKSHEET.xlsx",
+      "exists": true,
+      "size_bytes": 14175,
+      "sha256": "30ddfbee8b57c263beede4524fa9738b822a4fdfe762c96dfc66bdac6389df08",
+      "mtime_utc": "2026-11-27T11:20:02.752562+00:00"
+    },
+    "author_diagnostic_xlsx_downloads": {
+      "path": "/home/pratay-karali/Downloads/D11_A_AUTHOR_DIAGNOSTIC_WORKSHEET.xlsx",
+      "exists": true,
+      "size_bytes": 14175,
+      "sha256": "30ddfbee8b57c263beede4524fa9738b822a4fdfe762c96dfc66bdac6389df08",
+      "mtime_utc": "2026-11-27T11:29:19.936127+00:00"
+    },
+    "d11_a2_stage2_36q_json": {
+      "path": "/home/pratay-karali/.gemini/antigravity/brain/66c355ef-147d-4e8e-a8e2-037d4b340ff7/scratch/d11_a2_stage2_diagnostic_36.json",
+      "exists": true,
+      "size_bytes": 87333,
+      "sha256": "784b518542a6de84653fbd7a27e88d71cdd7b2cbb963176fa99e4b89f1c15d56",
+      "mtime_utc": "2026-11-27T16:43:20.136542+00:00"
+    },
+    "d11_a3_staging_36q_json": {
+      "path": "/home/pratay-karali/.gemini/antigravity/brain/66c355ef-147d-4e8e-a8e2-037d4b340ff7/scratch/d11_a3_staging_36.json",
+      "exists": true,
+      "size_bytes": 153809,
+      "sha256": "26eaa2dd6cbc99589c1b1fabee917439587781d6bb0b59c4dd76e37c08499df9",
+      "mtime_utc": "2026-11-27T17:54:34.893854+00:00"
+    },
+    "d11_a3_gate_d_report_md": {
+      "path": "/home/pratay-karali/.gemini/antigravity/brain/66c355ef-147d-4e8e-a8e2-037d4b340ff7/scratch/d11_a3_gate_d_36q_report.md",
+      "exists": true,
+      "size_bytes": 9396,
+      "sha256": "0675f6e05d6e8d6b6ea4c94c240c42184664a8ceb697b296984b79d8cd94f2b1",
+      "mtime_utc": "2026-11-27T17:55:36.569668+00:00"
+    },
+    "d11_a_round1_issue_register_md": {
+      "path": "/home/pratay-karali/.gemini/antigravity/brain/66c355ef-147d-4e8e-a8e2-037d4b340ff7/scratch/d11_a_round1_issue_register.md",
+      "exists": true,
+      "size_bytes": 28723,
+      "sha256": "da8726efda61af035f8ae72b97715e71302ad007a9bb4e5d4cae60491af633f2",
+      "mtime_utc": "2026-11-27T14:10:13.053282+00:00"
+    },
+    "browser_screenshots_2026_11_28_d13_window_06_07": {
+      "directory": "/home/pratay-karali/Pictures/Screenshots",
+      "count": 70,
+      "first_file": "Screenshot from 2026-11-28 06-20-11.png",
+      "last_file": "Screenshot from 2026-11-28 07-35-48.png"
+    },
+    "browser_screenshots_2026_11_28_d12_window_00": {
+      "directory": "/home/pratay-karali/Pictures/Screenshots",
+      "count": 22,
+      "first_file": "Screenshot from 2026-11-28 00-00-51.png",
+      "last_file": "Screenshot from 2026-11-28 00-24-58.png"
+    },
+    "missing_written_d13_93_defect_file_on_disk": true,
+    "missing_evidence_note": "No structured CSV/JSON/MD file containing the 93 D13 defect observations was found in the repository, worktrees, Downloads, Documents, or non-manuscript Desktop directories. Query sent to @coordinator (#6) to confirm whether observations were provided inline in the user prompt."
+  }
+}
