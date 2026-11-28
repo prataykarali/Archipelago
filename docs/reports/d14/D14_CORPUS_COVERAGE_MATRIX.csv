@@ -1,0 +1,13 @@
+domain,baseline_v2_docs,baseline_v2_passages,d14_v3_fulltext_docs,d14_v3_independent_sources,d14_v3_fulltext_passages,d14_v3_total_words,excluded_commercial_catalog_entries,meets_2_source_target,independent_source_groups
+Operating Systems,17,482,19,3,781,150759,2,true,downey_semaphores;downey_think_os;ostep_arpaci_dusseau
+Database Systems,0,0,2,2,223,38735,1,true,postgresql_official_docs;sqlite_official_docs
+Data Structures & Algorithms,0,0,2,2,1145,230169,1,true,erickson_algorithms;morin_ods
+Computer Networks,0,0,3,3,455,99927,1,true,ietf_rfc_congestion;ietf_rfc_http;ietf_rfc_transport
+Compiler Design,0,0,3,3,1478,339092,1,true,gnu_bison;llvm_project;nystrom_crafting_interpreters
+Automata Theory,0,0,2,2,725,166949,1,true,critchlow_eck_foc;maheshwari_smid_toc
+Mathematics for ML,1,775,2,2,1213,264748,0,true,deisenroth_mml;levin_dmoi
+Probability & Statistics,0,0,2,2,1058,232372,1,true,downey_think_stats;grinstead_snell_prob
+Information Security,0,0,4,4,868,168886,1,true,ietf_rfc_rsa;ietf_rfc_tls13;nist_fips197;rosulek_crypto
+AI & Machine Learning,25,1768,24,24,1985,421190,1,true,paper_bahdanau2014_attention;paper_bai2022_constitutionalai;paper_brown2020_gpt3;paper_dettmers2023_qlora;paper_devlin2018_bert;paper_edge2024_graphrag;paper_goodfellow2014_gan;paper_ho2020_ddpm;paper_hochreiter1997_lstm;paper_hu2021_lora;paper_karpukhin2020_dpr;paper_kingma2013_vae;paper_kipf2016_gcn;paper_krizhevsky2012_alexnet;paper_kwon2023_vllm;paper_lewis2020_rag;paper_ouyang2022_instructgpt;paper_rafailov2023_dpo;paper_vaswani2017_attention_is_all_you_need;paper_velickovic2017_gat;paper_wei2022_chainofthought;paper_willard2023_outlines;paper_yao2022_react;shalev_shwartz_uml
+Software Engineering,0,0,3,3,887,156416,1,true,chacon_pro_git;nist_ssdf;twelve_factor_aosa
+Computer Architecture,0,0,2,2,950,171759,1,true,dive_into_systems;riscv_isa_spec

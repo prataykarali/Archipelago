@@ -1,0 +1,1400 @@
+{
+  "schema": "archipelago.d14_corpus_v3.manifest.v1",
+  "corpus_version": "corpus_v3_d14",
+  "generated_at_utc": "2026-11-28T02:37:00.981034+00:00",
+  "parent_corpus_version": "corpus_v2_d10_3025",
+  "parent_manifest_path": "docs/reports/D10_S4_CANDIDATE_PASSAGE_MANIFEST.json",
+  "parent_manifest_sha256": "9965352d75840a802e47a50cdc8a434815005c26ca79e2eda00842f394d35dbf",
+  "parent_passage_index_sha256": "93f6db39cb10d03beeb41c48469d138be27b62ed90aa59d20dd4c5107fbb2e52",
+  "graph_sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+  "passage_jsonl_rel_path": "data/artifacts/corpus_v3_d14/d14_candidate_passages_v3.jsonl",
+  "passage_index_sha256": "6fe7f4d8cc27a91ebbf2e86c55267a661adf36f81425ed0cb7ab17c5f7ec4ffc",
+  "totals": {
+    "ingested_documents": 68,
+    "reextracted_baseline_documents": 41,
+    "added_oa_documents": 27,
+    "failed_oa_sources": 0,
+    "excluded_commercial_sources": 12,
+    "total_passages": 11768,
+    "total_words": 2441002,
+    "mean_words_per_passage": 207.43,
+    "printed_page_mapped_passages": 11583,
+    "domains_covered": 12,
+    "domains_meeting_target": 12
+  },
+  "structural_filtering": {
+    "filtered_toc": 43,
+    "filtered_references": 113,
+    "filtered_index": 71,
+    "filtered_front_matter": 3,
+    "filtered_low_quality": 1144,
+    "filtered_duplicates": 8
+  },
+  "indexing": {
+    "lexical_index": {
+      "tokenizer": "alnum_min3_stopword_filtered",
+      "vocabulary_size": 46150,
+      "total_tokens": 1241590,
+      "indexed_passages": 11768,
+      "concept_linked_passages": 8632,
+      "top_terms": [
+        {
+          "term": "all",
+          "df": 4088
+        },
+        {
+          "term": "one",
+          "df": 3666
+        },
+        {
+          "term": "example",
+          "df": 3262
+        },
+        {
+          "term": "use",
+          "df": 3122
+        },
+        {
+          "term": "any",
+          "df": 3110
+        },
+        {
+          "term": "you",
+          "df": 2874
+        },
+        {
+          "term": "two",
+          "df": 2856
+        },
+        {
+          "term": "see",
+          "df": 2600
+        },
+        {
+          "term": "number",
+          "df": 2526
+        },
+        {
+          "term": "same",
+          "df": 2502
+        },
+        {
+          "term": "value",
+          "df": 2389
+        },
+        {
+          "term": "set",
+          "df": 2376
+        },
+        {
+          "term": "following",
+          "df": 2029
+        },
+        {
+          "term": "its",
+          "df": 2010
+        },
+        {
+          "term": "time",
+          "df": 1989
+        },
+        {
+          "term": "let",
+          "df": 1983
+        },
+        {
+          "term": "function",
+          "df": 1955
+        },
+        {
+          "term": "how",
+          "df": 1938
+        },
+        {
+          "term": "does",
+          "df": 1931
+        },
+        {
+          "term": "must",
+          "df": 1923
+        },
+        {
+          "term": "data",
+          "df": 1919
+        },
+        {
+          "term": "may",
+          "df": 1865
+        },
+        {
+          "term": "given",
+          "df": 1827
+        },
+        {
+          "term": "what",
+          "df": 1773
+        },
+        {
+          "term": "should",
+          "df": 1761
+        },
+        {
+          "term": "they",
+          "df": 1685
+        },
+        {
+          "term": "our",
+          "df": 1641
+        },
+        {
+          "term": "new",
+          "df": 1641
+        },
+        {
+          "term": "since",
+          "df": 1611
+        },
+        {
+          "term": "both",
+          "df": 1593
+        },
+        {
+          "term": "values",
+          "df": 1583
+        },
+        {
+          "term": "case",
+          "df": 1573
+        },
+        {
+          "term": "would",
+          "df": 1544
+        },
+        {
+          "term": "rst",
+          "df": 1514
+        },
+        {
+          "term": "now",
+          "df": 1457
+        },
+        {
+          "term": "like",
+          "df": 1455
+        },
+        {
+          "term": "because",
+          "df": 1399
+        },
+        {
+          "term": "your",
+          "df": 1397
+        },
+        {
+          "term": "first",
+          "df": 1394
+        },
+        {
+          "term": "many",
+          "df": 1387
+        },
+        {
+          "term": "way",
+          "df": 1376
+        },
+        {
+          "term": "out",
+          "df": 1343
+        },
+        {
+          "term": "every",
+          "df": 1343
+        },
+        {
+          "term": "algorithm",
+          "df": 1322
+        },
+        {
+          "term": "however",
+          "df": 1309
+        },
+        {
+          "term": "possible",
+          "df": 1302
+        },
+        {
+          "term": "even",
+          "df": 1295
+        },
+        {
+          "term": "code",
+          "df": 1264
+        },
+        {
+          "term": "problem",
+          "df": 1234
+        },
+        {
+          "term": "note",
+          "df": 1232
+        }
+      ]
+    },
+    "dense_index_contract": {
+      "recommended_model": "Snowflake/snowflake-arctic-embed-m-v1.5",
+      "embedding_dim": 768,
+      "passage_id_field": "passage_id",
+      "text_field": "text",
+      "status": "READY_FOR_EMBEDDING"
+    }
+  },
+  "reextracted_doc_ids": [
+    "archipelago-books-cs/ostep_three_easy_pieces/00_Dialogue.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/01_Introduction.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/02_CPU_Virtualization.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/03_Process_API.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/04_Limited_Direct_Execution.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/05_CPU_Scheduling.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/09_TLBs.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/10_Concurrency_Intro.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/11_Locks.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/12_Semaphores.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/13_Common_Bugs.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/14_IO_Devices.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/15_RAID.pdf",
+    "archipelago-books-cs/ostep_three_easy_pieces/16_Log_Structured_FS.pdf",
+    "books/textbooks/Deisenroth_Math_For_ML.pdf",
+    "books/papers/Bahdanau2014_Attention.pdf",
+    "books/papers/Bai2022_ConstitutionalAI.pdf",
+    "books/papers/Brown2020_GPT3.pdf",
+    "books/papers/Dettmers2023_QLoRA.pdf",
+    "books/papers/Devlin2018_BERT.pdf",
+    "books/papers/Edge2024_GraphRAG.pdf",
+    "books/papers/Goodfellow2014_GAN.pdf",
+    "books/papers/Ho2020_DDPM.pdf",
+    "books/papers/Hochreiter1997_LSTM.pdf",
+    "books/papers/Hu2021_LoRA.pdf",
+    "books/papers/Karpukhin2020_DPR.pdf",
+    "books/papers/Kingma2013_VAE.pdf",
+    "books/papers/Kipf2016_GCN.pdf",
+    "books/papers/Krizhevsky2012_AlexNet.pdf",
+    "books/papers/Kwon2023_vLLM.pdf",
+    "books/papers/Lewis2020_RAG.pdf",
+    "books/papers/Ouyang2022_InstructGPT.pdf",
+    "books/papers/Rafailov2023_DPO.pdf",
+    "books/papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+    "books/papers/Velickovic2017_GAT.pdf",
+    "books/papers/Wei2022_ChainOfThought.pdf",
+    "books/papers/Willard2023_Outlines.pdf",
+    "books/papers/Yao2022_ReAct.pdf"
+  ],
+  "added_doc_ids": [
+    "d14_oa/operating_systems/downey_think_os.pdf",
+    "d14_oa/operating_systems/downey_little_book_of_semaphores.pdf",
+    "d14_oa/database_systems/postgresql16_core_internals.html",
+    "d14_oa/database_systems/sqlite_architecture_docs.html",
+    "d14_oa/dsa/morin_open_data_structures_python.pdf",
+    "d14_oa/dsa/erickson_algorithms.pdf",
+    "d14_oa/computer_networks/rfc9293_tcp.txt",
+    "d14_oa/computer_networks/rfc5681_tcp_congestion.txt",
+    "d14_oa/computer_networks/rfc9110_http_semantics.txt",
+    "d14_oa/compiler_design/gnu_bison_manual.html",
+    "d14_oa/compiler_design/llvm_langref.html",
+    "d14_oa/compiler_design/crafting_interpreters_core.html",
+    "d14_oa/automata_theory/maheshwari_smid_theory_of_computation.pdf",
+    "d14_oa/automata_theory/critchlow_eck_foundations_of_computation.pdf",
+    "d14_oa/math_for_ml/levin_discrete_math_open_intro.pdf",
+    "d14_oa/probability_statistics/downey_think_stats_2e.pdf",
+    "d14_oa/probability_statistics/grinstead_snell_intro_probability.pdf",
+    "d14_oa/information_security/rosulek_joy_of_cryptography.pdf",
+    "d14_oa/information_security/rfc8446_tls13.txt",
+    "d14_oa/information_security/rfc8017_rsa_pkcs1.txt",
+    "d14_oa/information_security/nist_fips197_aes.pdf",
+    "d14_oa/ai_ml/shalev_shwartz_understanding_ml.pdf",
+    "d14_oa/software_engineering/nist_sp800_218_ssdf.pdf",
+    "d14_oa/software_engineering/chacon_straub_pro_git_2e.pdf",
+    "d14_oa/software_engineering/twelve_factor_and_aosa_architecture.html",
+    "d14_oa/computer_architecture/riscv_unprivileged_isa_20240411.pdf",
+    "d14_oa/computer_architecture/dive_into_systems_arch_mem.html"
+  ],
+  "domain_coverage": [
+    {
+      "domain": "Operating Systems",
+      "baseline_v2_docs": 17,
+      "baseline_v2_passages": 482,
+      "d14_v3_fulltext_docs": 19,
+      "d14_v3_independent_sources": 3,
+      "d14_v3_fulltext_passages": 781,
+      "d14_v3_total_words": 150759,
+      "excluded_commercial_catalog_entries": 2,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "downey_semaphores;downey_think_os;ostep_arpaci_dusseau"
+    },
+    {
+      "domain": "Database Systems",
+      "baseline_v2_docs": 0,
+      "baseline_v2_passages": 0,
+      "d14_v3_fulltext_docs": 2,
+      "d14_v3_independent_sources": 2,
+      "d14_v3_fulltext_passages": 223,
+      "d14_v3_total_words": 38735,
+      "excluded_commercial_catalog_entries": 1,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "postgresql_official_docs;sqlite_official_docs"
+    },
+    {
+      "domain": "Data Structures & Algorithms",
+      "baseline_v2_docs": 0,
+      "baseline_v2_passages": 0,
+      "d14_v3_fulltext_docs": 2,
+      "d14_v3_independent_sources": 2,
+      "d14_v3_fulltext_passages": 1145,
+      "d14_v3_total_words": 230169,
+      "excluded_commercial_catalog_entries": 1,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "erickson_algorithms;morin_ods"
+    },
+    {
+      "domain": "Computer Networks",
+      "baseline_v2_docs": 0,
+      "baseline_v2_passages": 0,
+      "d14_v3_fulltext_docs": 3,
+      "d14_v3_independent_sources": 3,
+      "d14_v3_fulltext_passages": 455,
+      "d14_v3_total_words": 99927,
+      "excluded_commercial_catalog_entries": 1,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "ietf_rfc_congestion;ietf_rfc_http;ietf_rfc_transport"
+    },
+    {
+      "domain": "Compiler Design",
+      "baseline_v2_docs": 0,
+      "baseline_v2_passages": 0,
+      "d14_v3_fulltext_docs": 3,
+      "d14_v3_independent_sources": 3,
+      "d14_v3_fulltext_passages": 1478,
+      "d14_v3_total_words": 339092,
+      "excluded_commercial_catalog_entries": 1,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "gnu_bison;llvm_project;nystrom_crafting_interpreters"
+    },
+    {
+      "domain": "Automata Theory",
+      "baseline_v2_docs": 0,
+      "baseline_v2_passages": 0,
+      "d14_v3_fulltext_docs": 2,
+      "d14_v3_independent_sources": 2,
+      "d14_v3_fulltext_passages": 725,
+      "d14_v3_total_words": 166949,
+      "excluded_commercial_catalog_entries": 1,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "critchlow_eck_foc;maheshwari_smid_toc"
+    },
+    {
+      "domain": "Mathematics for ML",
+      "baseline_v2_docs": 1,
+      "baseline_v2_passages": 775,
+      "d14_v3_fulltext_docs": 2,
+      "d14_v3_independent_sources": 2,
+      "d14_v3_fulltext_passages": 1213,
+      "d14_v3_total_words": 264748,
+      "excluded_commercial_catalog_entries": 0,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "deisenroth_mml;levin_dmoi"
+    },
+    {
+      "domain": "Probability & Statistics",
+      "baseline_v2_docs": 0,
+      "baseline_v2_passages": 0,
+      "d14_v3_fulltext_docs": 2,
+      "d14_v3_independent_sources": 2,
+      "d14_v3_fulltext_passages": 1058,
+      "d14_v3_total_words": 232372,
+      "excluded_commercial_catalog_entries": 1,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "downey_think_stats;grinstead_snell_prob"
+    },
+    {
+      "domain": "Information Security",
+      "baseline_v2_docs": 0,
+      "baseline_v2_passages": 0,
+      "d14_v3_fulltext_docs": 4,
+      "d14_v3_independent_sources": 4,
+      "d14_v3_fulltext_passages": 868,
+      "d14_v3_total_words": 168886,
+      "excluded_commercial_catalog_entries": 1,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "ietf_rfc_rsa;ietf_rfc_tls13;nist_fips197;rosulek_crypto"
+    },
+    {
+      "domain": "AI & Machine Learning",
+      "baseline_v2_docs": 25,
+      "baseline_v2_passages": 1768,
+      "d14_v3_fulltext_docs": 24,
+      "d14_v3_independent_sources": 24,
+      "d14_v3_fulltext_passages": 1985,
+      "d14_v3_total_words": 421190,
+      "excluded_commercial_catalog_entries": 1,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "paper_bahdanau2014_attention;paper_bai2022_constitutionalai;paper_brown2020_gpt3;paper_dettmers2023_qlora;paper_devlin2018_bert;paper_edge2024_graphrag;paper_goodfellow2014_gan;paper_ho2020_ddpm;paper_hochreiter1997_lstm;paper_hu2021_lora;paper_karpukhin2020_dpr;paper_kingma2013_vae;paper_kipf2016_gcn;paper_krizhevsky2012_alexnet;paper_kwon2023_vllm;paper_lewis2020_rag;paper_ouyang2022_instructgpt;paper_rafailov2023_dpo;paper_vaswani2017_attention_is_all_you_need;paper_velickovic2017_gat;paper_wei2022_chainofthought;paper_willard2023_outlines;paper_yao2022_react;shalev_shwartz_uml"
+    },
+    {
+      "domain": "Software Engineering",
+      "baseline_v2_docs": 0,
+      "baseline_v2_passages": 0,
+      "d14_v3_fulltext_docs": 3,
+      "d14_v3_independent_sources": 3,
+      "d14_v3_fulltext_passages": 887,
+      "d14_v3_total_words": 156416,
+      "excluded_commercial_catalog_entries": 1,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "chacon_pro_git;nist_ssdf;twelve_factor_aosa"
+    },
+    {
+      "domain": "Computer Architecture",
+      "baseline_v2_docs": 0,
+      "baseline_v2_passages": 0,
+      "d14_v3_fulltext_docs": 2,
+      "d14_v3_independent_sources": 2,
+      "d14_v3_fulltext_passages": 950,
+      "d14_v3_total_words": 171759,
+      "excluded_commercial_catalog_entries": 1,
+      "meets_2_source_target": "true",
+      "independent_source_groups": "dive_into_systems;riscv_isa_spec"
+    }
+  ],
+  "documents": [
+    {
+      "source_id": "ostep_00_dialogue",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/00_Dialogue.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 0: A Dialogue on the Book",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "eb985b86c08584508ad0731b94a84d28a5c0e8004f5cd4475f722504c0e509b4",
+      "passages": 4,
+      "words": 748,
+      "printed_page_mapped": 4
+    },
+    {
+      "source_id": "ostep_01_introduction",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/01_Introduction.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 1: Introduction to Operating Systems",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "98e68cadc18468deed74e490b40aa6d414f1536d3ec8e5dc25b156603edf2a19",
+      "passages": 32,
+      "words": 7256,
+      "printed_page_mapped": 32
+    },
+    {
+      "source_id": "ostep_02_cpu_virtualization",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/02_CPU_Virtualization.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 2: CPU Virtualization and Processes",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "d4c7a5200fa104f6d5af7d845dc65b99b17ea55fb1fed6a151a7c4d1353bd6e8",
+      "passages": 19,
+      "words": 3931,
+      "printed_page_mapped": 19
+    },
+    {
+      "source_id": "ostep_03_process_api",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/03_Process_API.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 3: Interlude: Process API",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "00aa608424bbdf5e9d6ef17d47e7595a5455a42e74ad3e6c5913603aa7e8ea7b",
+      "passages": 24,
+      "words": 4871,
+      "printed_page_mapped": 24
+    },
+    {
+      "source_id": "ostep_04_limited_direct_execution",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/04_Limited_Direct_Execution.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 4: Mechanism: Limited Direct Execution",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "ad9c3ae46f0d695744008a0faa1dd104ebf033eb0d5a0e14411146b2d53d9054",
+      "passages": 27,
+      "words": 5956,
+      "printed_page_mapped": 27
+    },
+    {
+      "source_id": "ostep_05_cpu_scheduling",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/05_CPU_Scheduling.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 5: CPU Scheduling",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "0912b1a34977a70704b921ecfdf0dd65300e038a3eb4e5e57b2d9c38f66b63c3",
+      "passages": 22,
+      "words": 4200,
+      "printed_page_mapped": 22
+    },
+    {
+      "source_id": "ostep_06_address_spaces",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 6: The Abstraction: Address Spaces",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "c57de8420ea7bc8afbca5ce3ba92bcc0b32d5f719f4ab613dd9ceb698d537acc",
+      "passages": 15,
+      "words": 2864,
+      "printed_page_mapped": 15
+    },
+    {
+      "source_id": "ostep_07_address_translation",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 7: Mechanism: Address Translation",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "38d81af0ae91743ee39c08c71be620d244b73496536c68c22ccebc2b8a0344a7",
+      "passages": 25,
+      "words": 4953,
+      "printed_page_mapped": 25
+    },
+    {
+      "source_id": "ostep_08_paging",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 8: Paging: Introduction",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "0307d990a5638c37d59fb8ca67de75a0afc439461239fa660a7c948dce3bc6d5",
+      "passages": 23,
+      "words": 4837,
+      "printed_page_mapped": 23
+    },
+    {
+      "source_id": "ostep_09_tlbs",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/09_TLBs.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 9: Paging: Faster Translations (TLBs)",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "202953f283487b812a9a97c17f4a3cb3a9b3e80a300cc6467c3080ffb0be013e",
+      "passages": 28,
+      "words": 6214,
+      "printed_page_mapped": 28
+    },
+    {
+      "source_id": "ostep_10_concurrency_intro",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/10_Concurrency_Intro.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 10: Concurrency: An Introduction",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "04eebf12233463d54c6b39352bbea644241b308312cabd568b24b9aa3b7e4d1e",
+      "passages": 27,
+      "words": 5266,
+      "printed_page_mapped": 27
+    },
+    {
+      "source_id": "ostep_11_locks",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/11_Locks.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 11: Locks",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "349b3b3251a178e8bd725dc710cd2b9a4d30f34a7491390bc7c1b53c015d1515",
+      "passages": 39,
+      "words": 8569,
+      "printed_page_mapped": 39
+    },
+    {
+      "source_id": "ostep_12_semaphores",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/12_Semaphores.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 12: Semaphores",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "991a6a2edbd604c6e2c9b52c9505ff63db92fd2bca4c294a252bdfc0dbed38fb",
+      "passages": 34,
+      "words": 6593,
+      "printed_page_mapped": 34
+    },
+    {
+      "source_id": "ostep_13_common_bugs",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/13_Common_Bugs.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 13: Common Concurrency Problems",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "dc8c3a7b64ff35fe626838a877cc1759d33bce6104ab30a0221268b3ee9859d4",
+      "passages": 29,
+      "words": 5365,
+      "printed_page_mapped": 29
+    },
+    {
+      "source_id": "ostep_14_io_devices",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/14_IO_Devices.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 14: I/O Devices",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "08546bc068699f5a8be8df72417bd2b4e282b08f8c2a1fe056ca09bfdf0533d5",
+      "passages": 22,
+      "words": 4609,
+      "printed_page_mapped": 22
+    },
+    {
+      "source_id": "ostep_15_raid",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/15_RAID.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 15: Redundant Arrays of Inexpensive Disks (RAID)",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "3d88a8b2d47247572a6d424f9b6f5789a6f0b8a39ce1bb8d9f6ef4403fd9e340",
+      "passages": 34,
+      "words": 7786,
+      "printed_page_mapped": 34
+    },
+    {
+      "source_id": "ostep_16_log_structured_fs",
+      "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/16_Log_Structured_FS.pdf",
+      "title": "Operating Systems: Three Easy Pieces — Ch. 16: Log-Structured File Systems",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "Author Free Open Textbook (OSTEP Online)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "8c52ffc98c65bcb56198be9e5b7ebb789e86687751553a298d10b25a4712d1f4",
+      "passages": 30,
+      "words": 6334,
+      "printed_page_mapped": 30
+    },
+    {
+      "source_id": "deisenroth_math_for_ml",
+      "doc_id": "books/textbooks/Deisenroth_Math_For_ML.pdf",
+      "title": "Mathematics for Machine Learning",
+      "domain": "Mathematics for ML",
+      "secondary_domains": [
+        "Probability & Statistics",
+        "AI & Machine Learning"
+      ],
+      "license": "Author Free Open PDF (Cambridge Univ. Press / mml-book)",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "3f87b70c64a35d30ec4e565b4d5cfd18fe913002d3b3bed44691c7d0838911bc",
+      "passages": 656,
+      "words": 138694,
+      "printed_page_mapped": 656
+    },
+    {
+      "source_id": "paper_bahdanau2014_attention",
+      "doc_id": "books/papers/Bahdanau2014_Attention.pdf",
+      "title": "Neural Machine Translation by Jointly Learning to Align and Translate",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "84801c8410da51b449d379d2fa4939a416123f2c93991077a680f863026022a7",
+      "passages": 34,
+      "words": 7124,
+      "printed_page_mapped": 34
+    },
+    {
+      "source_id": "paper_bai2022_constitutionalai",
+      "doc_id": "books/papers/Bai2022_ConstitutionalAI.pdf",
+      "title": "Constitutional AI: Harmlessness from AI Feedback",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "9a456a07ad346e3372f9867d346f69f5b0f68b4c65f060aca0b8a13fa9d98e83",
+      "passages": 88,
+      "words": 18032,
+      "printed_page_mapped": 86
+    },
+    {
+      "source_id": "paper_brown2020_gpt3",
+      "doc_id": "books/papers/Brown2020_GPT3.pdf",
+      "title": "Language Models are Few-Shot Learners",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "97fd272f1fdfc18677462d0292f5fbf26ca86b4d1b485c2dba03269b643a0e83",
+      "passages": 159,
+      "words": 31648,
+      "printed_page_mapped": 157
+    },
+    {
+      "source_id": "paper_dettmers2023_qlora",
+      "doc_id": "books/papers/Dettmers2023_QLoRA.pdf",
+      "title": "QLoRA: Efficient Finetuning of Quantized LLMs",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "33a4e757c19d6ea8d3cca8958fce8fe405e290272e135c99ee66065c775d5bd1",
+      "passages": 53,
+      "words": 11454,
+      "printed_page_mapped": 51
+    },
+    {
+      "source_id": "paper_devlin2018_bert",
+      "doc_id": "books/papers/Devlin2018_BERT.pdf",
+      "title": "BERT: Pre-training of Deep Bidirectional Transformers",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "5692a5514787a8c6727b4ff3b726a3385798bc68e12138d1d4af83947e2acf6e",
+      "passages": 44,
+      "words": 9513,
+      "printed_page_mapped": 44
+    },
+    {
+      "source_id": "paper_edge2024_graphrag",
+      "doc_id": "books/papers/Edge2024_GraphRAG.pdf",
+      "title": "From Local to Global: A Graph RAG Approach",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "730f1a9f38d16689900969a3eeeb1b31e45eda1dcc1f37a043afa90aff76c867",
+      "passages": 52,
+      "words": 10329,
+      "printed_page_mapped": 50
+    },
+    {
+      "source_id": "paper_goodfellow2014_gan",
+      "doc_id": "books/papers/Goodfellow2014_GAN.pdf",
+      "title": "Generative Adversarial Nets",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "ff5819e3a7b713c3bd3107b7de3d51fe0a347aa5d8444f0efdcf2345ef0a8b63",
+      "passages": 18,
+      "words": 3590,
+      "printed_page_mapped": 18
+    },
+    {
+      "source_id": "paper_ho2020_ddpm",
+      "doc_id": "books/papers/Ho2020_DDPM.pdf",
+      "title": "Denoising Diffusion Probabilistic Models",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [
+        "Probability & Statistics"
+      ],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "aee5e07a802e8dfd2a386374c94fd61d1d056cb7e1e0fec4f28e8120ff5d8505",
+      "passages": 33,
+      "words": 6519,
+      "printed_page_mapped": 31
+    },
+    {
+      "source_id": "paper_hochreiter1997_lstm",
+      "doc_id": "books/papers/Hochreiter1997_LSTM.pdf",
+      "title": "Long Short-Term Memory",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "ceb9e53dbc0493f5b3bf5520ed940f3e6b526064d17b2118d77e51f79c0edcc6",
+      "passages": 74,
+      "words": 21051,
+      "printed_page_mapped": 15
+    },
+    {
+      "source_id": "paper_hu2021_lora",
+      "doc_id": "books/papers/Hu2021_LoRA.pdf",
+      "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a",
+      "passages": 55,
+      "words": 11269,
+      "printed_page_mapped": 55
+    },
+    {
+      "source_id": "paper_karpukhin2020_dpr",
+      "doc_id": "books/papers/Karpukhin2020_DPR.pdf",
+      "title": "Dense Passage Retrieval for Open-Domain QA",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "3e67fc1a9977715acf722d85f0b7d124b03715e975f6310a4d6c12094190912f",
+      "passages": 40,
+      "words": 8873,
+      "printed_page_mapped": 0
+    },
+    {
+      "source_id": "paper_kingma2013_vae",
+      "doc_id": "books/papers/Kingma2013_VAE.pdf",
+      "title": "Auto-Encoding Variational Bayes",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [
+        "Probability & Statistics"
+      ],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "bdcb63b79ed88f64f8ee2d43a721930d01dde5441a4dba20ecaa2342b34e017c",
+      "passages": 32,
+      "words": 6206,
+      "printed_page_mapped": 32
+    },
+    {
+      "source_id": "paper_kipf2016_gcn",
+      "doc_id": "books/papers/Kipf2016_GCN.pdf",
+      "title": "Semi-Supervised Classification with Graph Convolutional Networks",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "a654f884db04a317b0f2414a83f2ba32a9f8442d29bcf1cb5f73f7af78a98070",
+      "passages": 33,
+      "words": 6583,
+      "printed_page_mapped": 33
+    },
+    {
+      "source_id": "paper_krizhevsky2012_alexnet",
+      "doc_id": "books/papers/Krizhevsky2012_AlexNet.pdf",
+      "title": "ImageNet Classification with Deep Convolutional Neural Networks",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "90137160c57217953d5f61857e64ca58e85f06e1b13b4f475c918b1b582b9771",
+      "passages": 24,
+      "words": 4979,
+      "printed_page_mapped": 24
+    },
+    {
+      "source_id": "paper_kwon2023_vllm",
+      "doc_id": "books/papers/Kwon2023_vLLM.pdf",
+      "title": "Efficient Memory Management for LLM Serving with PagedAttention",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [
+        "Operating Systems"
+      ],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e",
+      "passages": 53,
+      "words": 11844,
+      "printed_page_mapped": 53
+    },
+    {
+      "source_id": "paper_lewis2020_rag",
+      "doc_id": "books/papers/Lewis2020_RAG.pdf",
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "23e3249e9a1e75418d82efecab0ea8c4d033b89c93742f63208d47ce01f21233",
+      "passages": 52,
+      "words": 9868,
+      "printed_page_mapped": 50
+    },
+    {
+      "source_id": "paper_ouyang2022_instructgpt",
+      "doc_id": "books/papers/Ouyang2022_InstructGPT.pdf",
+      "title": "Training Language Models to Follow Instructions with Human Feedback",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "c1984bb50a5b90fddb895fdc3a0f72e5bc977148c9f63ef6040cbe7a3e1f0d98",
+      "passages": 130,
+      "words": 25779,
+      "printed_page_mapped": 128
+    },
+    {
+      "source_id": "paper_rafailov2023_dpo",
+      "doc_id": "books/papers/Rafailov2023_DPO.pdf",
+      "title": "Direct Preference Optimization",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a",
+      "passages": 63,
+      "words": 13826,
+      "printed_page_mapped": 61
+    },
+    {
+      "source_id": "paper_vaswani2017_attention_is_all_you_need",
+      "doc_id": "books/papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "title": "Attention Is All You Need",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+      "passages": 28,
+      "words": 5206,
+      "printed_page_mapped": 26
+    },
+    {
+      "source_id": "paper_velickovic2017_gat",
+      "doc_id": "books/papers/Velickovic2017_GAT.pdf",
+      "title": "Graph Attention Networks",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "a7d811a44e1c65bf27da3a01859f23a8edbe33b8f96114b4b5066aedb078f284",
+      "passages": 33,
+      "words": 6210,
+      "printed_page_mapped": 33
+    },
+    {
+      "source_id": "paper_wei2022_chainofthought",
+      "doc_id": "books/papers/Wei2022_ChainOfThought.pdf",
+      "title": "Chain-of-Thought Prompting Elicits Reasoning in LLMs",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "7d9f878c23b460e4566aa4ec9201b1abfb3b8faefb2b1356e411cb90fef72a12",
+      "passages": 99,
+      "words": 21158,
+      "printed_page_mapped": 97
+    },
+    {
+      "source_id": "paper_willard2023_outlines",
+      "doc_id": "books/papers/Willard2023_Outlines.pdf",
+      "title": "Efficient Guided Generation for Large Language Models",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "8888aa2043588e41d0f222b59ca6896e5211816eeca8896db215234ba209aa4f",
+      "passages": 25,
+      "words": 4593,
+      "printed_page_mapped": 25
+    },
+    {
+      "source_id": "paper_yao2022_react",
+      "doc_id": "books/papers/Yao2022_ReAct.pdf",
+      "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [],
+      "license": "arXiv / Open-Access Research Paper",
+      "origin": "baseline_v2_hf_cache",
+      "sha256": "f285b0971ae4a790e402fb93966bed3adde2cf0a04977d08b2b40d6ab0cace69",
+      "passages": 75,
+      "words": 15156,
+      "printed_page_mapped": 75
+    },
+    {
+      "source_id": "downey_think_os",
+      "doc_id": "d14_oa/operating_systems/downey_think_os.pdf",
+      "title": "Think OS: A Brief Introduction to Operating Systems",
+      "domain": "Operating Systems",
+      "secondary_domains": [
+        "Computer Architecture"
+      ],
+      "license": "CC-BY-NC-3.0",
+      "origin": "d14_oa_acquisition",
+      "sha256": "a2fc778e3e8bb763d245c9d299e93c88b218cbd891a68b0575e4a5db4b64afc6",
+      "passages": 126,
+      "words": 24452,
+      "printed_page_mapped": 126
+    },
+    {
+      "source_id": "downey_semaphores",
+      "doc_id": "d14_oa/operating_systems/downey_little_book_of_semaphores.pdf",
+      "title": "The Little Book of Semaphores",
+      "domain": "Operating Systems",
+      "secondary_domains": [],
+      "license": "GFDL-1.2",
+      "origin": "d14_oa_acquisition",
+      "sha256": "25f1a7e82418be28bf200fa480bd060de1b7abbd2f46f7c215f0b682a9950a17",
+      "passages": 221,
+      "words": 35955,
+      "printed_page_mapped": 221
+    },
+    {
+      "source_id": "postgresql16_internals",
+      "doc_id": "d14_oa/database_systems/postgresql16_core_internals.html",
+      "title": "PostgreSQL 16 Documentation: MVCC, Isolation, Indexes & WAL",
+      "domain": "Database Systems",
+      "secondary_domains": [],
+      "license": "PostgreSQL",
+      "origin": "d14_oa_acquisition",
+      "sha256": "6d4568c622a2060842c4e1186356fa740ba5f05b4eb388307990b07b7bf2eff3",
+      "passages": 32,
+      "words": 5556,
+      "printed_page_mapped": 32
+    },
+    {
+      "source_id": "sqlite_architecture",
+      "doc_id": "d14_oa/database_systems/sqlite_architecture_docs.html",
+      "title": "SQLite Architecture: File Format, B-Trees, Query Planner & Atomic Commit",
+      "domain": "Database Systems",
+      "secondary_domains": [
+        "Data Structures & Algorithms"
+      ],
+      "license": "Public Domain",
+      "origin": "d14_oa_acquisition",
+      "sha256": "3362348a4062d544931d259d8a3cfefc283d60bf7c521659a5dc0a4a62da415f",
+      "passages": 191,
+      "words": 33179,
+      "printed_page_mapped": 191
+    },
+    {
+      "source_id": "morin_open_data_structures",
+      "doc_id": "d14_oa/dsa/morin_open_data_structures_python.pdf",
+      "title": "Open Data Structures (in Python)",
+      "domain": "Data Structures & Algorithms",
+      "secondary_domains": [],
+      "license": "CC-BY-4.0",
+      "origin": "d14_oa_acquisition",
+      "sha256": "2bdd7e8129fff83daf04cd594fce5236d72b1d8b8c72832fde22ea762a7e014f",
+      "passages": 359,
+      "words": 70939,
+      "printed_page_mapped": 359
+    },
+    {
+      "source_id": "erickson_algorithms",
+      "doc_id": "d14_oa/dsa/erickson_algorithms.pdf",
+      "title": "Algorithms",
+      "domain": "Data Structures & Algorithms",
+      "secondary_domains": [
+        "Automata Theory"
+      ],
+      "license": "CC-BY-4.0",
+      "origin": "d14_oa_acquisition",
+      "sha256": "00295b82ff725c52a71351a0bb1ee1bdb1584e594a62395d3fb382aefd0f4d42",
+      "passages": 786,
+      "words": 159230,
+      "printed_page_mapped": 785
+    },
+    {
+      "source_id": "ietf_rfc9293_tcp",
+      "doc_id": "d14_oa/computer_networks/rfc9293_tcp.txt",
+      "title": "RFC 9293: Transmission Control Protocol (TCP)",
+      "domain": "Computer Networks",
+      "secondary_domains": [],
+      "license": "IETF Trust License",
+      "origin": "d14_oa_acquisition",
+      "sha256": "6d9ac8be4b0286f8c3d337addf442b2eb6a9b14e1366594ea7fbc273f93dc2d9",
+      "passages": 125,
+      "words": 28119,
+      "printed_page_mapped": 125
+    },
+    {
+      "source_id": "ietf_rfc5681_tcp_cc",
+      "doc_id": "d14_oa/computer_networks/rfc5681_tcp_congestion.txt",
+      "title": "RFC 5681: TCP Congestion Control",
+      "domain": "Computer Networks",
+      "secondary_domains": [],
+      "license": "IETF Trust License",
+      "origin": "d14_oa_acquisition",
+      "sha256": "a2d99a2421d5c57b248394f26ba44fc364aa546680fbf10ff0aa7034dad8b87d",
+      "passages": 32,
+      "words": 5579,
+      "printed_page_mapped": 32
+    },
+    {
+      "source_id": "ietf_rfc9110_http",
+      "doc_id": "d14_oa/computer_networks/rfc9110_http_semantics.txt",
+      "title": "RFC 9110: HTTP Semantics",
+      "domain": "Computer Networks",
+      "secondary_domains": [
+        "Information Security"
+      ],
+      "license": "IETF Trust License",
+      "origin": "d14_oa_acquisition",
+      "sha256": "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a",
+      "passages": 298,
+      "words": 66229,
+      "printed_page_mapped": 298
+    },
+    {
+      "source_id": "gnu_bison_manual",
+      "doc_id": "d14_oa/compiler_design/gnu_bison_manual.html",
+      "title": "GNU Bison Manual: LALR(1) & LR Parser Generation",
+      "domain": "Compiler Design",
+      "secondary_domains": [
+        "Automata Theory"
+      ],
+      "license": "GFDL-1.3",
+      "origin": "d14_oa_acquisition",
+      "sha256": "c4600d9056b7edadf86de3c9160439f4303709f94e954518916d99391b5f335b",
+      "passages": 498,
+      "words": 111979,
+      "printed_page_mapped": 498
+    },
+    {
+      "source_id": "llvm_langref",
+      "doc_id": "d14_oa/compiler_design/llvm_langref.html",
+      "title": "LLVM Language Reference Manual (SSA IR & Type System)",
+      "domain": "Compiler Design",
+      "secondary_domains": [
+        "Computer Architecture"
+      ],
+      "license": "Apache-2.0 WITH LLVM-exception",
+      "origin": "d14_oa_acquisition",
+      "sha256": "7ed0af182ba3e7a1159eeb7748a880bc050e9f91306c2c8e4030b33b8b88691d",
+      "passages": 850,
+      "words": 198526,
+      "printed_page_mapped": 850
+    },
+    {
+      "source_id": "nystrom_crafting_interpreters",
+      "doc_id": "d14_oa/compiler_design/crafting_interpreters_core.html",
+      "title": "Crafting Interpreters: Scanning, Parsing, Bytecode & Compiling",
+      "domain": "Compiler Design",
+      "secondary_domains": [],
+      "license": "MIT (Code) / Author Free Web Edition",
+      "origin": "d14_oa_acquisition",
+      "sha256": "147f5d4faa4380cb2871f12040d2f79a772c21856d85cd5027c5f0fd20e874ae",
+      "passages": 130,
+      "words": 28587,
+      "printed_page_mapped": 130
+    },
+    {
+      "source_id": "maheshwari_smid_toc",
+      "doc_id": "d14_oa/automata_theory/maheshwari_smid_theory_of_computation.pdf",
+      "title": "Introduction to the Theory of Computation",
+      "domain": "Automata Theory",
+      "secondary_domains": [
+        "Compiler Design"
+      ],
+      "license": "Author Free Open Textbook (Carleton Univ.)",
+      "origin": "d14_oa_acquisition",
+      "sha256": "8ed1b72576b86207963db7e4eb465c1c8646995256bfd8cfbf57f6e1853d2fb4",
+      "passages": 281,
+      "words": 65008,
+      "printed_page_mapped": 281
+    },
+    {
+      "source_id": "critchlow_eck_foundations",
+      "doc_id": "d14_oa/automata_theory/critchlow_eck_foundations_of_computation.pdf",
+      "title": "Foundations of Computation (v2.3.2)",
+      "domain": "Automata Theory",
+      "secondary_domains": [
+        "Mathematics for ML"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "origin": "d14_oa_acquisition",
+      "sha256": "ac5b066c95f555cba7ef5061356f0fecc9d5bc7d463ae1fe1cb01a5dec698680",
+      "passages": 444,
+      "words": 101941,
+      "printed_page_mapped": 444
+    },
+    {
+      "source_id": "levin_discrete_math",
+      "doc_id": "d14_oa/math_for_ml/levin_discrete_math_open_intro.pdf",
+      "title": "Discrete Mathematics: An Open Introduction (3rd Edition)",
+      "domain": "Mathematics for ML",
+      "secondary_domains": [
+        "Automata Theory",
+        "Data Structures & Algorithms"
+      ],
+      "license": "CC-BY-SA-4.0",
+      "origin": "d14_oa_acquisition",
+      "sha256": "9baf67f2ec90cf5020430bc502aa5aacad1cf482df47b1bb7495c02d3c9bf99e",
+      "passages": 557,
+      "words": 126054,
+      "printed_page_mapped": 557
+    },
+    {
+      "source_id": "downey_think_stats",
+      "doc_id": "d14_oa/probability_statistics/downey_think_stats_2e.pdf",
+      "title": "Think Stats: Exploratory Data Analysis in Python (2nd Edition)",
+      "domain": "Probability & Statistics",
+      "secondary_domains": [
+        "Mathematics for ML"
+      ],
+      "license": "CC-BY-NC-3.0",
+      "origin": "d14_oa_acquisition",
+      "sha256": "5dbea9094f3606472087e16dc920ae6b87d680f5cff3f3142e6a58a78d9cf567",
+      "passages": 290,
+      "words": 54550,
+      "printed_page_mapped": 290
+    },
+    {
+      "source_id": "grinstead_snell_probability",
+      "doc_id": "d14_oa/probability_statistics/grinstead_snell_intro_probability.pdf",
+      "title": "Introduction to Probability",
+      "domain": "Probability & Statistics",
+      "secondary_domains": [
+        "Mathematics for ML"
+      ],
+      "license": "GFDL-1.2",
+      "origin": "d14_oa_acquisition",
+      "sha256": "763eab9894983ddfd6cd7f84685548d1515a9326a2d9fd015474534460551a5e",
+      "passages": 768,
+      "words": 177822,
+      "printed_page_mapped": 767
+    },
+    {
+      "source_id": "rosulek_joy_of_cryptography",
+      "doc_id": "d14_oa/information_security/rosulek_joy_of_cryptography.pdf",
+      "title": "The Joy of Cryptography",
+      "domain": "Information Security",
+      "secondary_domains": [
+        "Mathematics for ML"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "origin": "d14_oa_acquisition",
+      "sha256": "68fcdc7cf0874fd535daa78700029c5b7ad46c22b078d3f0dbe3eb8a988245c1",
+      "passages": 497,
+      "words": 108049,
+      "printed_page_mapped": 497
+    },
+    {
+      "source_id": "ietf_rfc8446_tls13",
+      "doc_id": "d14_oa/information_security/rfc8446_tls13.txt",
+      "title": "RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3",
+      "domain": "Information Security",
+      "secondary_domains": [
+        "Computer Networks"
+      ],
+      "license": "IETF Trust License",
+      "origin": "d14_oa_acquisition",
+      "sha256": "47871bc8820a2c3b6ea89f061055577058862cf543686b82d10131239702b3bd",
+      "passages": 234,
+      "words": 36484,
+      "printed_page_mapped": 234
+    },
+    {
+      "source_id": "ietf_rfc8017_rsa",
+      "doc_id": "d14_oa/information_security/rfc8017_rsa_pkcs1.txt",
+      "title": "RFC 8017: PKCS #1: RSA Cryptography Specifications Version 2.2",
+      "domain": "Information Security",
+      "secondary_domains": [],
+      "license": "IETF Trust License",
+      "origin": "d14_oa_acquisition",
+      "sha256": "1e72dc473d18df3fc5598cdc12795a9f18f36f1aef15abc23a55eb0d58151d11",
+      "passages": 98,
+      "words": 17507,
+      "printed_page_mapped": 98
+    },
+    {
+      "source_id": "nist_fips197_aes",
+      "doc_id": "d14_oa/information_security/nist_fips197_aes.pdf",
+      "title": "NIST FIPS 197: Advanced Encryption Standard (AES)",
+      "domain": "Information Security",
+      "secondary_domains": [],
+      "license": "Public Domain (US Government Work)",
+      "origin": "d14_oa_acquisition",
+      "sha256": "62c86eb567f13edb8f71826e985da870b04ef6381634f303cdb16e84d47becd1",
+      "passages": 39,
+      "words": 6846,
+      "printed_page_mapped": 39
+    },
+    {
+      "source_id": "shalev_shwartz_uml",
+      "doc_id": "d14_oa/ai_ml/shalev_shwartz_understanding_ml.pdf",
+      "title": "Understanding Machine Learning: From Theory to Algorithms",
+      "domain": "AI & Machine Learning",
+      "secondary_domains": [
+        "Mathematics for ML",
+        "Probability & Statistics"
+      ],
+      "license": "Author Free Open PDF (Cambridge Univ. Press / Authors)",
+      "origin": "d14_oa_acquisition",
+      "sha256": "5ad0c69c922e47e423f6b469e8cfbaf07beae6933185af746b670911a8d163f2",
+      "passages": 688,
+      "words": 150380,
+      "printed_page_mapped": 688
+    },
+    {
+      "source_id": "nist_sp800_218_ssdf",
+      "doc_id": "d14_oa/software_engineering/nist_sp800_218_ssdf.pdf",
+      "title": "NIST SP 800-218: Secure Software Development Framework (SSDF) v1.1",
+      "domain": "Software Engineering",
+      "secondary_domains": [
+        "Information Security"
+      ],
+      "license": "Public Domain (US Government Work)",
+      "origin": "d14_oa_acquisition",
+      "sha256": "617746e553a9e2da49bfbd4eef0dfc3094758a39b869314e4173ac36605cde22",
+      "passages": 78,
+      "words": 13227,
+      "printed_page_mapped": 14
+    },
+    {
+      "source_id": "chacon_pro_git",
+      "doc_id": "d14_oa/software_engineering/chacon_straub_pro_git_2e.pdf",
+      "title": "Pro Git (2nd Edition)",
+      "domain": "Software Engineering",
+      "secondary_domains": [],
+      "license": "CC-BY-NC-SA-3.0",
+      "origin": "d14_oa_acquisition",
+      "sha256": "6e2d6844b7af1f00624babea92c3f8134c1b72e1e173d85a026f218b8e0c2abd",
+      "passages": 774,
+      "words": 136084,
+      "printed_page_mapped": 774
+    },
+    {
+      "source_id": "twelve_factor_and_aosa",
+      "doc_id": "d14_oa/software_engineering/twelve_factor_and_aosa_architecture.html",
+      "title": "The Twelve-Factor App & Architecture of Open Source Applications (Vol. 2)",
+      "domain": "Software Engineering",
+      "secondary_domains": [],
+      "license": "MIT / CC-BY-3.0",
+      "origin": "d14_oa_acquisition",
+      "sha256": "edb34fda9932fac37114a1e59662a9abec8536f5b70f4d3f2f0311f72d31737c",
+      "passages": 35,
+      "words": 7105,
+      "printed_page_mapped": 35
+    },
+    {
+      "source_id": "riscv_unprivileged_spec",
+      "doc_id": "d14_oa/computer_architecture/riscv_unprivileged_isa_20240411.pdf",
+      "title": "The RISC-V Instruction Set Manual, Vol. I: Unprivileged Architecture",
+      "domain": "Computer Architecture",
+      "secondary_domains": [
+        "Operating Systems"
+      ],
+      "license": "CC-BY-4.0",
+      "origin": "d14_oa_acquisition",
+      "sha256": "82f88088f1a159062f0dee6b8fc1f43afb9c889d6eea69083c21f1e79f55d83d",
+      "passages": 940,
+      "words": 169440,
+      "printed_page_mapped": 940
+    },
+    {
+      "source_id": "dive_into_systems_arch",
+      "doc_id": "d14_oa/computer_architecture/dive_into_systems_arch_mem.html",
+      "title": "Dive into Systems: Binary Representation, CPU Architecture & Memory Hierarchy",
+      "domain": "Computer Architecture",
+      "secondary_domains": [
+        "Operating Systems"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "origin": "d14_oa_acquisition",
+      "sha256": "02c56723a5089a5be9e9f133f357bf907f021d87182f4427733cbcf57a4fd54e",
+      "passages": 10,
+      "words": 2319,
+      "printed_page_mapped": 10
+    }
+  ]
+}
