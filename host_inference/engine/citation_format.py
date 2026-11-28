@@ -23,6 +23,7 @@ from .access_profile import (
     is_open_access_profile,
     is_pearson_url,
     is_restricted_artifact_path,
+    is_unauthorized_stub,
     lookup_d14_source,
 )
 from .docmap import HF_DOC_MAP
@@ -250,16 +251,26 @@ def classify_source_kind(
         return SOURCE_KIND_UNAVAILABLE
     if record.get("withdrawn") or str(record.get("source_type") or "").strip().lower() == "withdrawn":
         return SOURCE_KIND_UNAVAILABLE
-    if is_d14_excluded_commercial(record):
-        return SOURCE_KIND_METADATA_ONLY
-
     raw_url = str(record.get("url") or record.get("pdf_url") or "").strip()
     source_cat = str(record.get("source_category") or "").strip().lower()
     source_type = str(record.get("source_type") or "").strip().lower()
     doc_id = str(record.get("doc_id") or "").strip()
 
+    if is_d14_excluded_commercial(record):
+        return SOURCE_KIND_METADATA_ONLY
     if source_cat == SOURCE_CAT_PEARSON or is_institutional_card(record) or is_pearson_url(raw_url):
         return SOURCE_KIND_INSTITUTIONAL
+    if oa_only and is_unauthorized_stub(record):
+        if doc_id.lower().endswith(".pdf") and not _is_known_hf_pdf(doc_id):
+            return SOURCE_KIND_UNAVAILABLE
+        return SOURCE_KIND_METADATA_ONLY
+
+    if is_d14_approved_oa(record):
+        valid_url, _valid_page, resolvable = _validate_reader_url(
+            raw_url, record, open_access_only=oa_only
+        )
+        if resolvable and valid_url:
+            return SOURCE_KIND_VERIFIED_FULL_TEXT
 
     if (
         source_cat == SOURCE_CAT_TOC_INDEX
@@ -323,6 +334,8 @@ def _mark_non_clickable(
         "source_kind_label": SOURCE_KIND_LABELS[source_kind],
         "url": "",
         "pdf_url": "",
+        "reader_url": "",
+        "external_url": "",
         "bibliographic_url": bib_url,
         "reader_resolvable": False,
         "page_verified": False,
@@ -331,7 +344,6 @@ def _mark_non_clickable(
         "evidence_state_label": EVIDENCE_STATE_LABELS[ev_state],
         "follow_up_eligible": False,
     })
-    item.pop("reader_url", None)
     item.pop("open_url", None)
     _attach_page_provenance(item, None)
     return item
@@ -383,7 +395,17 @@ def sanitize_citation_record(
     valid_url, valid_page, resolvable = _validate_reader_url(raw_url, item, open_access_only=oa_only)
     if not resolvable or not valid_url:
         return _mark_non_clickable(item, source_kind=SOURCE_KIND_UNAVAILABLE, ev_state=EVIDENCE_STATE_UNAVAILABLE)
-    item.update({"url": valid_url, "pdf_url": valid_url, "reader_resolvable": True, "page_verified": valid_page is not None, "clickable": True})
+    is_ext = valid_url.startswith("https://")
+    ext_url = valid_url if is_ext else str(item.get("external_url") or d14_canonical_oa_url(item) or "")
+    item.update({
+        "url": valid_url,
+        "pdf_url": valid_url if (not is_ext or valid_url.lower().split("#", 1)[0].endswith(".pdf")) else "",
+        "reader_url": valid_url,
+        "external_url": ext_url,
+        "reader_resolvable": True,
+        "page_verified": valid_page is not None,
+        "clickable": True,
+    })
     _attach_page_provenance(item, valid_page)
     ev_state = classify_evidence_state(item, open_access_only=oa_only)
     item.update({

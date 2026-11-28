@@ -21,7 +21,13 @@ from urllib.parse import quote
 from library_index import resolve_hf_source
 from remote_cache import load_books
 
-from .access_profile import is_open_access_profile
+from .access_profile import (
+    d14_canonical_oa_url,
+    is_d14_excluded_commercial,
+    is_open_access_profile,
+    is_unauthorized_stub,
+    lookup_d14_source,
+)
 
 # Canonical 5-type source categories.
 SOURCE_CAT_OA_PAPER = "oa_research_paper"
@@ -170,6 +176,29 @@ def resolve_source_target(
             "access_status": "TOC/index metadata only (full text not indexed)",
         }
 
+    # Excluded commercial holdings & legacy/unauthorized stubs under OA isolation.
+    if is_d14_excluded_commercial(raw_doc_id) or is_d14_excluded_commercial(canonical_doc_id) or (
+        is_open_access_profile()
+        and (is_unauthorized_stub(raw_doc_id) or is_unauthorized_stub(canonical_doc_id))
+    ):
+        return {
+            "source_category": SOURCE_CAT_MISSING,
+            "source_type": "metadata_only",
+            "url": "",
+            "reader_url": "",
+            "external_url": "",
+            "page_number": None,
+            "page_verified": False,
+            "reader_resolvable": False,
+            "is_pearson": False,
+            "book_id": "",
+            "book_type": "",
+            "hf_repo": "",
+            "hf_path": "",
+            "resolved_title": title,
+            "access_status": "Metadata-only holding (excluded under open-access profile)",
+        }
+
     # Types A & B: Open-access PDF backed by Hugging Face Library_books / graphier.
     hf_repo, hf_path = resolve_hf_source(canonical_doc_id)
     if not hf_path and raw_doc_id and raw_doc_id != canonical_doc_id:
@@ -192,6 +221,8 @@ def resolve_source_target(
             "source_category": category,
             "source_type": "ingested_pdf",
             "url": url,
+            "reader_url": url,
+            "external_url": "",
             "page_number": valid_page,
             "page_verified": bool(valid_page),
             "reader_resolvable": True,
@@ -203,6 +234,47 @@ def resolve_source_target(
             "resolved_title": title,
             "access_status": "Available (Open Access HF Reader)",
         }
+
+    # Types A & B (D14 OA registry): Approved open-access PDFs, HTML textbooks, and IETF RFCs.
+    d14_entry = lookup_d14_source(raw_doc_id) or lookup_d14_source(canonical_doc_id)
+    if d14_entry is not None and d14_entry.get("is_approved_oa"):
+        ext_base = d14_canonical_oa_url(d14_entry)
+        if ext_base:
+            valid_page = (
+                int(page_number)
+                if isinstance(page_number, int) and not isinstance(page_number, bool) and page_number > 0
+                else None
+            )
+            fmt = str(d14_entry.get("source_format") or "pdf").lower()
+            max_p = d14_entry.get("page_count")
+            if valid_page is not None and isinstance(max_p, int) and max_p > 0 and valid_page > max_p:
+                valid_page = None
+            ext_url = (
+                f"{ext_base}#page={valid_page}"
+                if valid_page is not None and ext_base.lower().endswith(".pdf") and "#page=" not in ext_base.lower()
+                else ext_base
+            )
+            is_paper = str(d14_entry.get("domain") or "").lower() == "ai_ml" and "paper_" in str(
+                d14_entry.get("independent_group") or ""
+            ).lower()
+            category = SOURCE_CAT_OA_PAPER if is_paper else SOURCE_CAT_OA_TEXTBOOK
+            return {
+                "source_category": category,
+                "source_type": "ingested_oa_pdf" if fmt == "pdf" else f"ingested_oa_{fmt}",
+                "url": ext_url,
+                "reader_url": ext_url,
+                "external_url": ext_url,
+                "page_number": valid_page,
+                "page_verified": bool(valid_page),
+                "reader_resolvable": True,
+                "is_pearson": False,
+                "book_id": "",
+                "book_type": fmt,
+                "hf_repo": "",
+                "hf_path": "",
+                "resolved_title": str(d14_entry.get("title") or title or canonical_doc_id),
+                "access_status": f"Available (Open Access: {d14_entry.get('license_name') or 'OA'})",
+            }
 
     # Type D: Official Pearson institutional catalogue-only textbook.
     # Excluded completely under the SIGIR open-access profile.

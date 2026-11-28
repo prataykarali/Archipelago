@@ -10,7 +10,12 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from .access_profile import is_open_access_profile, is_pearson_url
+from .access_profile import (
+    is_d14_excluded_commercial,
+    is_open_access_profile,
+    is_pearson_url,
+    is_unauthorized_stub,
+)
 from .corpus_titles import clean_bibliographic_title
 from .docmap import hf_doc_path
 from .provenance import (
@@ -496,8 +501,16 @@ def _ranked_live_sources(
     if not raw_sources:
         return [], False
     live = [s for s in raw_sources if is_citable_source(s, retired)]
+    if is_open_access_profile():
+        live = [
+            s
+            for s in live
+            if not is_d14_excluded_commercial(s) and not is_unauthorized_stub(s)
+        ]
     if not live:
-        return [], True
+        return [], not raw_sources or all(
+            not is_citable_source(s, retired) for s in raw_sources
+        )
 
     label = graph.label(cid)
     q_domains = infer_text_domains(f"{query} {cid.replace('_', ' ')} {label}")
@@ -644,6 +657,10 @@ EXPLANATORY_PASSAGE_BONUS = 10
 INTRO_SECTION_PENALTY = -35
 NON_BODY_CLASS_PENALTY = -45
 HYBRID_RANK_WEIGHT = 20.0
+GRAPH_INDEP_MIN_COVERAGE = 0.34
+WILDCARD_DOMAIN_MIN_COVERAGE = 0.45
+WILDCARD_DOMAIN_MIN_TOKENS = 3
+WILDCARD_DOMAIN_MIN_SCORE = 28.0
 
 
 def _build_catalog_citation(
@@ -657,8 +674,12 @@ def _build_catalog_citation(
 ) -> dict[str, Any]:
     raw_doc_id = str(entry.get("doc_id") or "").strip()
     doc_id = hf_doc_path(raw_doc_id)
-    page_val = entry.get("page")
-    page_int = int(page_val) if isinstance(page_val, int) and page_val > 0 else 1
+    page_val = entry.get("page_number") or entry.get("page")
+    if not (isinstance(page_val, int) and page_val > 0):
+        pdf_idx = entry.get("pdf_page_index")
+        if isinstance(pdf_idx, int) and not isinstance(pdf_idx, bool) and pdf_idx >= 0:
+            page_val = pdf_idx + 1
+    page_int = int(page_val) if isinstance(page_val, int) and not isinstance(page_val, bool) and page_val > 0 else 1
     chunk_id = str(entry.get("passage_id") or entry.get("chunk_id") or "").strip() or None
     entry_title = str(entry.get("source_title") or "").strip()
     resolved = resolve_source_target(
@@ -724,6 +745,8 @@ def _build_catalog_citation(
         "printed_page": entry.get("printed_page"),
         "pdf_url": hf_url,
         "url": hf_url,
+        "reader_url": str(resolved.get("reader_url") or hf_url),
+        "external_url": str(resolved.get("external_url") or ""),
         "withdrawn": False,
         "notice": "",
         "text_passage": passage_text,
@@ -829,6 +852,8 @@ def select_catalog_passages(
             is_pearson_url(raw_doc)
             or "pearson" in raw_doc.lower()
             or "pearson" in canon_doc.lower()
+            or is_d14_excluded_commercial(raw_doc)
+            or is_unauthorized_stub(raw_doc)
         ):
             continue
         text = str(entry.get("text") or "")
@@ -883,6 +908,7 @@ def select_catalog_passages(
             elif _INTRO_DOC_RE.search(canon_doc) or _INTRO_DOC_RE.search(raw_doc):
                 score += PAGING_INTRO_FLUFF_PENALTY
 
+        q_coverage = q_overlap / max(1, len(q_toks))
         single_term_ok = len(q_toks) == 1 and q_overlap == 1 and bool(query_domains & doc_domains)
         has_distinctive_match = (
             phrase_hits >= 1
@@ -890,7 +916,30 @@ def select_catalog_passages(
             or single_term_ok
             or (retrieval_method == "hybrid_bm25_dense_rrf" and idx in hybrid_scores and q_overlap >= 1)
         )
-        if score >= CATALOG_MIN_SCORE and has_distinctive_match:
+        if not anchor_cid:
+            if not query_domains:
+                # No CS/math domain detected: require strong multi-term coherence + score to prevent OOC hallucinations.
+                sufficient = (
+                    q_overlap >= WILDCARD_DOMAIN_MIN_TOKENS
+                    and q_coverage >= WILDCARD_DOMAIN_MIN_COVERAGE
+                    and score >= WILDCARD_DOMAIN_MIN_SCORE
+                ) or (
+                    phrase_hits >= 1
+                    and q_overlap >= CATALOG_MIN_DISTINCTIVE_TOKENS
+                    and q_coverage >= WILDCARD_DOMAIN_MIN_COVERAGE
+                    and score >= WILDCARD_DOMAIN_MIN_SCORE
+                )
+            elif len(q_toks) >= WILDCARD_DOMAIN_MIN_TOKENS:
+                sufficient = (
+                    (q_overlap >= CATALOG_MIN_DISTINCTIVE_TOKENS and q_coverage >= GRAPH_INDEP_MIN_COVERAGE)
+                    or (phrase_hits >= 1 and q_overlap >= CATALOG_MIN_DISTINCTIVE_TOKENS)
+                )
+            else:
+                sufficient = has_distinctive_match
+        else:
+            sufficient = has_distinctive_match
+
+        if score >= CATALOG_MIN_SCORE and has_distinctive_match and sufficient:
             scored.append((score, entry))
 
     scored.sort(

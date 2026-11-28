@@ -9,7 +9,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap');
   </style>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@1.79.0"></script>
   <script type="module" src="/auth_bridge.js"></script>
   <style>
     body {
@@ -61,18 +61,10 @@
 </head>
 <body class="min-h-screen bg-black text-white relative overflow-x-hidden flex flex-col justify-between">
 
-  <!-- Full-screen Looping Cinematic Background Video with custom JS fade engine -->
-  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <video
-      id="bg-hero-video"
-      src="/ui/assets/archi_main.mp4"
-      autoplay
-      loop
-      muted
-      playsinline
-      class="absolute inset-0 w-full h-full object-cover translate-y-[17%] opacity-0"
-    ></video>
-    <div class="absolute inset-0 bg-gradient-to-b from-black/75 via-black/35 to-black/90"></div>
+  <!-- The original full-screen animation stays behind the landing content. -->
+  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
+    <video id="bg-hero-video" src="/ui/assets/landing_vortex.mp4" poster="/ui/assets/landing_vortex_poster.jpg" autoplay loop muted playsinline preload="auto" class="absolute inset-0 w-full h-full object-cover" style="left:4%;transform:translateY(3%);opacity:1;filter:brightness(.95) contrast(1.1)"></video>
+    <div class="absolute inset-0" style="background:linear-gradient(to bottom,rgba(0,0,0,.56),rgba(0,0,0,.1) 48%,rgba(0,0,0,.68))"></div>
   </div>
 
   <!-- Header: Archipelago Wordmark left, nav links & Sign In right -->
@@ -100,7 +92,7 @@
     </div>
   </header>
 
-  <!-- Hero Content Area floating seamlessly over the cinematic video -->
+  <!-- Original centered landing content over the cinematic animation. -->
   <main class="relative z-10 flex min-h-[calc(100vh-140px)] flex-col items-center justify-center px-6 py-8 text-center max-w-4xl mx-auto">
     <!-- Eyebrow + Knowledge Title -->
     <section class="flex w-full flex-col items-center text-center">
@@ -111,19 +103,52 @@
       >
         KNOWLEDGE
       </h1>
-      <p class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-white/75 md:text-base" style="text-shadow: 0 2px 10px rgba(0,0,0,0.95);">
+      <p id="landing-hero-tagline" class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-white/75 md:text-base" style="text-shadow: 0 2px 10px rgba(0,0,0,0.95); min-height: 2.5rem;">
         Islands of insight, connected — ask the corpus, follow citations, explore the graph.
       </p>
     </section>
 
     <!-- Serif promise + direct CTAs -->
     <section class="relative mt-8 flex w-full max-w-3xl flex-col items-center md:mt-12" aria-label="Archipelago introduction">
-      <h2 class="font-serif-title text-center text-4xl sm:text-5xl md:text-6xl text-white font-normal" style="text-shadow: 0 4px 24px rgba(0,0,0,0.9);">
+      <h2 id="landing-promise-title" class="font-serif-title text-center text-4xl sm:text-5xl md:text-6xl text-white font-normal" style="text-shadow: 0 4px 24px rgba(0,0,0,0.9); min-height: 1.2em;">
         Built for the curious
       </h2>
-      <p class="mx-auto mt-3 max-w-md text-center text-xs leading-relaxed text-white/85 sm:text-sm" style="text-shadow: 0 2px 8px rgba(0,0,0,0.95);">
+      <p id="landing-promise-sub" class="mx-auto mt-3 max-w-md text-center text-xs leading-relaxed text-white/85 sm:text-sm" style="text-shadow: 0 2px 8px rgba(0,0,0,0.95); min-height: 2.2rem;">
         Your campus AI/ML co-pilot for deep questions, sharp sources, and quiet focus.
       </p>
+      <script>
+        (function () {
+          if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          function typeLoop(el, speed, loop) {
+            if (!el) return;
+            var full = (el.textContent || '').trim();
+            if (!full) return;
+            el.textContent = '';
+            var i = 0, erasing = false;
+            function tick() {
+              if (!erasing) {
+                i += 1;
+                el.textContent = full.slice(0, i);
+                if (i < full.length) setTimeout(tick, speed);
+                else if (loop) setTimeout(function () { erasing = true; tick(); }, 2800);
+              } else {
+                i -= 1;
+                el.textContent = full.slice(0, Math.max(0, i));
+                if (i > 0) setTimeout(tick, Math.max(10, Math.floor(speed / 2)));
+                else { erasing = false; setTimeout(tick, 450); }
+              }
+            }
+            tick();
+          }
+          window.addEventListener('DOMContentLoaded', function () {
+            typeLoop(document.getElementById('landing-promise-title'), 48, false);
+            setTimeout(function () {
+              typeLoop(document.getElementById('landing-hero-tagline'), 24, true);
+              typeLoop(document.getElementById('landing-promise-sub'), 26, true);
+            }, 350);
+          });
+        })();
+      </script>
       <div class="mt-7 flex flex-wrap items-center justify-center gap-4">
         <a
           id="enter-chat-link"
@@ -139,6 +164,10 @@
         >
           Library details &rarr;
         </a>
+      </div>
+      <div class="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold">
+        <a href="/librarian" class="text-emerald-200 hover:text-white">Librarian Space ↗</a>
+        <a href="/research" class="text-violet-200 hover:text-white">Research ↗</a>
       </div>
     </section>
 
@@ -173,6 +202,10 @@
 
   <footer class="relative z-10 pb-8 pt-4 text-center">
     <p class="text-xs text-white/40"><span aria-hidden="true">△</span> Archipelago — Islands of insight, connected.</p>
+    <details class="mx-auto mt-2 max-w-xl px-4 text-[11px] text-white/45">
+      <summary class="cursor-pointer hover:text-white/75">Privacy Policy, Data Usage &amp; Terms</summary>
+      <p class="mt-1.5 leading-relaxed">Archipelago collects your institutional username, role, chat history, and saved research queries to provide academic discovery. Data is processed via Supabase Auth, scholarly providers (OpenAlex, Crossref, Semantic Scholar, arXiv), and the Archipelago AI gateway. No advertising or third-party tracking cookies are used. You may clear local chat and research history at any time from your session or request account deletion via the IEM/UEM Library Administrator.</p>
+    </details>
   </footer>
 
   <!-- Role-Based Auth Popup Modal with 1-Click Access -->
@@ -224,66 +257,32 @@
     </div>
   </div>
 
-  <!-- Custom requestAnimationFrame Video Fade System (500ms fade-in/fade-out) -->
+  <!-- Keep the looping hero visible while the browser advances between loops. -->
   <script>
     if (window.lucide) lucide.createIcons();
 
-    (function initVideoFadeEngine() {
+    (function keepHeroPlaying() {
       const video = document.getElementById('bg-hero-video');
       if (!video) return;
-
-      let animFrameId = null;
-      let fadingOut = false;
-
-      function fadeVideo(targetOpacity, durationMs, onComplete) {
-        if (animFrameId) cancelAnimationFrame(animFrameId);
-        const startOpacity = parseFloat(video.style.opacity || 0);
-        const startTime = performance.now();
-
-        function step(now) {
-          const elapsed = now - startTime;
-          const progress = Math.min(elapsed / durationMs, 1);
-          video.style.opacity = startOpacity + (targetOpacity - startOpacity) * progress;
-
-          if (progress < 1) {
-            animFrameId = requestAnimationFrame(step);
-          } else if (onComplete) {
-            onComplete();
-          }
-        }
-        animFrameId = requestAnimationFrame(step);
-      }
-
-      video.addEventListener('loadeddata', () => fadeVideo(0.85, 500));
-      video.addEventListener('play', () => fadeVideo(0.85, 500));
-
-      video.addEventListener('timeupdate', () => {
-        if (video.duration && (video.duration - video.currentTime <= 0.55) && !fadingOut) {
-          fadingOut = true;
-          fadeVideo(0, 500);
-        }
-      });
-
-      video.addEventListener('ended', () => {
-        video.style.opacity = '0';
-        setTimeout(() => {
-          video.currentTime = 0;
-          fadingOut = false;
-          video.play().catch(() => {});
-          fadeVideo(0.85, 500);
-        }, 100);
-      });
-
-      video.play().then(() => fadeVideo(0.85, 500)).catch(() => {
-        video.style.opacity = '0.7';
-      });
+      video.style.opacity = '1';
+      video.loop = true;
+      video.muted = true;
+      const play = () => video.play().catch(() => {});
+      video.addEventListener('pause', () => { if (!document.hidden) play(); });
+      video.addEventListener('stalled', play);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) play(); });
+      play();
     })();
 
     // ── Auth Modal Functions ──
     let targetDestination = "/chat";
 
+    function sanitizeLandingTarget(candidate) {
+      return typeof candidate === "string" && /^\/(?!\/|\\)/.test(candidate) ? candidate : "/chat";
+    }
+
     function openAuthModal(mode, target = "/chat") {
-      targetDestination = target;
+      targetDestination = sanitizeLandingTarget(target);
       const fullLoginLink = document.getElementById("modal-full-login-link");
       if (fullLoginLink) {
         fullLoginLink.href = `/login?next=${encodeURIComponent(targetDestination)}`;
@@ -327,7 +326,7 @@
           });
         }
 
-        window.location.assign(targetDestination);
+        window.location.assign(sanitizeLandingTarget(targetDestination));
       } catch (err) {
         if (msg) msg.textContent = err?.message || "Sign-in failed. Please try again.";
       }

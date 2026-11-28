@@ -250,15 +250,19 @@ def _fallback_graph_hits(graph, query: str) -> list[str]:
 
 GRAPH_INDEPENDENT_SCORE = 0.85
 GRAPH_INDEPENDENT_EXCERPT_LIMIT = 360
+NON_ACADEMIC_MIN_RETRIEVAL_SCORE = 35.0
 
 
 def _retrieve_graph_independent_passages(
     engine: Any, query: str
 ) -> tuple[list[dict[str, Any]], str]:
     """Retrieve query-specific corpus passages even when no concept-graph node matches."""
+    is_academic = bool(ACADEMIC_DOMAIN_RE.search(query or "")) or bool(
+        infer_text_domains(query or "")
+    )
     catalog = getattr(engine, "catalog", None)
     if catalog is None:
-        return [], ""
+        return [], ("weak_evidence" if is_academic else "out_of_coverage")
     graph = getattr(engine, "graph", None)
     cites = select_catalog_passages(
         catalog,
@@ -273,7 +277,11 @@ def _retrieve_graph_independent_passages(
         if str(c.get("source_category") or "") != "pearson_catalogue_only"
     ]
     if not cites:
-        return [], ""
+        return [], ("weak_evidence" if is_academic else "out_of_coverage")
+    if not is_academic:
+        top_score = float(cites[0].get("retrieval_score") or 0.0)
+        if top_score < NON_ACADEMIC_MIN_RETRIEVAL_SCORE:
+            return [], "out_of_coverage"
     method = str(cites[0].get("retrieval_method") or "bm25_lexical")
     return cites, method
 
@@ -942,23 +950,26 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
                     "graph_independent_retrieval": True,
                 },
             )
-        if ACADEMIC_DOMAIN_RE.search(query):
+        if ACADEMIC_DOMAIN_RE.search(query) or infer_text_domains(query):
+            abstention_reason = (
+                "weak_evidence" if gi_method == "weak_evidence" else "unresolved_concept"
+            )
             return (
                 "GENERAL_EXPLANATION",
-                f"**{query.strip(' ?.')}** is a foundational academic topic that is not currently indexed "
-                "as a standalone concept node in the local catalog. This explanation uses general "
-                "foundational knowledge rather than local catalog citations.",
+                f"**{query.strip(' ?.')}** is an academic topic with insufficient local passage "
+                "support or no standalone concept node in the current catalog. This response uses "
+                "general foundational knowledge rather than local catalog citations.",
                 None,
-                {"hide_graph": True, "score": best_score, "reason": "academic_general_not_indexed"},
+                {"hide_graph": True, "score": best_score, "reason": abstention_reason},
             )
         return (
             "GUARDRAIL_INTERCEPT",
-            build_unsupported_reply(graph, query, reason="cosine_below_0.75"),
+            build_unsupported_reply(graph, query, reason="out_of_coverage"),
             None,
             {
                 "hide_graph": True,
                 "score": best_score,
-                "reason": "cosine_below_0.75",
+                "reason": "out_of_coverage",
             },
         )
 

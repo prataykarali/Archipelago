@@ -25,6 +25,38 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_DENSE_MODEL = "BAAI/bge-small-en-v1.5"
 ENV_DENSE_ENABLED = "ARCHIPELAGO_DENSE_RETRIEVAL"
 ENV_DENSE_MODEL = "ARCHIPELAGO_DENSE_MODEL"
+ENV_DENSE_REVISION = "ARCHIPELAGO_DENSE_REVISION"
+
+# Explicit separation between runtime default and experimental evaluation baselines (C3).
+DENSE_MODEL_PROFILES: dict[str, dict[str, Any]] = {
+    "runtime_default": {
+        "model_id": "BAAI/bge-small-en-v1.5",
+        "revision": "main",
+        "dimensions": 384,
+        "pooling": "cls",
+        "normalize_l2": True,
+        "query_prefix": "Represent this sentence for searching relevant passages: ",
+        "role": "Fast CPU runtime dense encoder when local weights are cached",
+    },
+    "experimental_baseline": {
+        "model_id": "Snowflake/snowflake-arctic-embed-m",
+        "revision": "fc74610d",
+        "dimensions": 768,
+        "pooling": "cls",
+        "normalize_l2": True,
+        "query_prefix": "Represent this sentence for searching relevant passages: ",
+        "role": "Pinned D15 controlled benchmark dense baseline (eval_protocol_v2_1)",
+    },
+    "manifest_recommended": {
+        "model_id": "Snowflake/snowflake-arctic-embed-m-v1.5",
+        "revision": "main",
+        "dimensions": 768,
+        "pooling": "cls",
+        "normalize_l2": True,
+        "query_prefix": "Represent this sentence for searching relevant passages: ",
+        "role": "Corpus manifest recommendation (Matryoshka-capable successor to v1)",
+    },
+}
 
 DEFAULT_BM25_K1 = 1.5
 DEFAULT_BM25_B = 0.75
@@ -265,6 +297,8 @@ class DensePassageEncoder:
         self,
         model_name: str | None = None,
         *,
+        revision: str | None = None,
+        query_prefix: str | None = None,
         encode_fn: Callable[[list[str]], np.ndarray] | None = None,
         local_files_only: bool = True,
         cache_path: Path | None = None,
@@ -272,6 +306,10 @@ class DensePassageEncoder:
         self.model_name = (
             model_name or os.environ.get(ENV_DENSE_MODEL, "")
         ).strip() or DEFAULT_DENSE_MODEL
+        self.revision = (
+            revision or os.environ.get(ENV_DENSE_REVISION, "")
+        ).strip() or None
+        self.query_prefix = query_prefix or ""
         self._encode_fn = encode_fn
         self._local_files_only = local_files_only
         self._cache_path = cache_path
@@ -297,10 +335,12 @@ class DensePassageEncoder:
             from sentence_transformers import SentenceTransformer
 
             allow_download = env_flag in {"1", "true", "force"}
-            self._model = SentenceTransformer(
-                self.model_name,
-                local_files_only=self._local_files_only and not allow_download,
-            )
+            kwargs: dict[str, Any] = {
+                "local_files_only": self._local_files_only and not allow_download,
+            }
+            if self.revision:
+                kwargs["revision"] = self.revision
+            self._model = SentenceTransformer(self.model_name, **kwargs)
             self._available = True
         except Exception as exc:
             LOGGER.info(

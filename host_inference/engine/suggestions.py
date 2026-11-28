@@ -14,7 +14,13 @@ from typing import Any
 
 from library_index import load_hf_paths
 
-from .access_profile import active_access_profile, is_open_access_profile
+from .access_profile import (
+    active_access_profile,
+    is_d14_excluded_commercial,
+    is_open_access_profile,
+    is_unauthorized_stub,
+    load_d14_source_registry,
+)
 
 DEFAULT_SUGGESTION_COUNT = 5
 MIN_SUGGESTION_COUNT = 4
@@ -183,6 +189,19 @@ _KNOWLEDGE_AREA_SPECS: tuple[tuple[str, str, re.Pattern[str]], ...] = (
 _DOMAIN_LABEL_TO_KEY: dict[str, str] = {
     label.lower(): key for key, label, _ in _KNOWLEDGE_AREA_SPECS
 }
+_DOMAIN_LABEL_TO_KEY.update({
+    "mathematics for ml": "math_computing",
+    "mathematics for computing": "math_computing",
+    "linear_algebra": "math_computing",
+    "automata theory": "automata",
+    "automata & computation": "automata",
+    "theory_of_computation": "automata",
+    "compiler design": "compilers",
+    "compilers & languages": "compilers",
+    "information security": "security",
+    "security_crypto": "security",
+    "ai & machine learning": "ai_ml",
+})
 
 _QUESTION_TEMPLATES: tuple[str, ...] = (
     "Explain {label} and how it works.",
@@ -221,27 +240,47 @@ def _classify_text_area(text: str) -> str:
     return classify_domain_best("", cleaned, "")
 
 
+def _d14_corpus_domain_docs() -> dict[str, set[str]]:
+    """Derive per-domain approved OA document sets directly from the D14 source registry."""
+    by_dom: dict[str, set[str]] = {k: set() for k, _, _ in _KNOWLEDGE_AREA_SPECS}
+    for entry in load_d14_source_registry().values():
+        if not entry.get("is_approved_oa"):
+            continue
+        dom_raw = str(entry.get("domain") or "").strip().lower()
+        key = _DOMAIN_LABEL_TO_KEY.get(dom_raw) or classify_domain_best("", dom_raw, "")
+        doc_key = str(entry.get("doc_id") or entry.get("source_id") or "").strip()
+        if key in by_dom and doc_key:
+            by_dom[key].add(doc_key)
+    return by_dom
+
+
 def _open_corpus_paths() -> list[str]:
-    """Deduplicated open-access corpus paths (excluding librarian test uploads)."""
+    """Deduplicated open-access corpus paths from D14 registry (or HF fallback)."""
+    reg_docs = sorted({doc for docs in _d14_corpus_domain_docs().values() for doc in docs})
+    if reg_docs:
+        return reg_docs
     seen_base: set[str] = set()
     unique: list[str] = []
     for path in sorted(load_hf_paths(), key=lambda p: (0 if "/" in p else 1, p.lower())):
         if "librarian_uploads/" in path.lower():
             continue
         base = path.rsplit("/", 1)[-1].lower()
-        if base in seen_base:
-            continue
-        seen_base.add(base)
-        unique.append(path)
+        if base not in seen_base:
+            seen_base.add(base)
+            unique.append(path)
     return unique
 
 
-def _node_is_supported(node: dict[str, Any], *, open_only: bool) -> bool:
+def _node_is_supported(
+    node: dict[str, Any], *, open_only: bool, area_has_full_text: bool = False
+) -> bool:
     label = str(node.get("label") or node.get("name") or "").strip()
     if len(label) < MIN_LABEL_LEN or len(label) > MAX_LABEL_LEN:
         return False
     if re.search(r"^(?:doc_|upload_|chunk_)", label, re.I):
         return False
+    if area_has_full_text:
+        return True
     sources = node.get("sources") or []
     if not sources:
         return False
@@ -251,6 +290,8 @@ def _node_is_supported(node: dict[str, Any], *, open_only: bool) -> bool:
         if not isinstance(src, dict):
             continue
         doc_id = str(src.get("doc_id") or "").lower()
+        if is_unauthorized_stub(doc_id) or is_d14_excluded_commercial(doc_id):
+            continue
         if any(m in doc_id for m in _OPEN_ACCESS_DOC_MARKERS) and not doc_id.startswith("upload_"):
             return True
     return False
@@ -278,18 +319,20 @@ def discover_domain_coverage(graph: Any) -> dict[str, list[dict[str, Any]]]:
     open_only = is_open_access_profile()
     area_labels = {key: label for key, label, _ in _KNOWLEDGE_AREA_SPECS}
     area_concepts: dict[str, list[tuple[int, str]]] = {k: [] for k, _, _ in _KNOWLEDGE_AREA_SPECS}
-    area_docs: dict[str, set[str]] = {k: set() for k, _, _ in _KNOWLEDGE_AREA_SPECS}
-
-    for path in _open_corpus_paths():
-        dom = classify_domain_best(path.replace("_", " ").replace("/", " "), "")
-        if dom:
-            area_docs[dom].add(path)
+    area_docs = _d14_corpus_domain_docs()
+    if not any(area_docs.values()):
+        for path in _open_corpus_paths():
+            dom = classify_domain_best(path.replace("_", " ").replace("/", " "), "")
+            if dom:
+                area_docs[dom].add(path)
 
     for cid, node in nodes.items():
-        if not isinstance(node, dict) or not _node_is_supported(node, open_only=open_only):
+        if not isinstance(node, dict):
             continue
         dom = _node_area(cid, node)
         if not dom:
+            continue
+        if not _node_is_supported(node, open_only=open_only, area_has_full_text=bool(area_docs.get(dom))):
             continue
         label = str(node.get("label") or node.get("name") or cid).strip()
         weight = int(node.get("source_count") or len(node.get("sources") or [])) + int(
@@ -460,6 +503,7 @@ def build_suggestions_payload(
     *,
     count: int = DEFAULT_SUGGESTION_COUNT,
     seed: int | None = None,
+    corpus_version: str | None = None,
 ) -> dict[str, Any]:
     """Assemble the complete ``GET /api/chat/suggestions`` JSON payload."""
     nodes = getattr(graph, "nodes", None) or {}
@@ -469,6 +513,9 @@ def build_suggestions_payload(
     return {
         "access_profile": active_access_profile(),
         "open_access_only": is_open_access_profile(),
+        "corpus_version": corpus_version or "corpus_v3_d14",
+        "graph_version": getattr(graph, "graph_artifact_version", "graph_v2_d14"),
+        "graph_sha256": getattr(graph, "graph_sha256", ""),
         "total_concepts": len(nodes),
         "total_open_docs": len(open_docs),
         "knowledge_areas": areas,

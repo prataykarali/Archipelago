@@ -5769,7 +5769,7 @@
       "label": "Direct Preference Optimization (DPO)",
       "concept_type": "method",
       "difficulty": "advanced",
-      "summary": "DPO is a preference-based reinforcement learning method that uses a reward model to evaluate generations, allowing for precise alignment of language models with human preferences.",
+      "summary": "Direct Preference Optimization (DPO) aligns language models directly from human preference pairs by optimizing a preference objective using a policy and reference-policy formulation, avoiding the need to train a separate explicit reward model in the standard algorithm.",
       "tags": [],
       "sources": [
         {
@@ -32116,7 +32116,7 @@
       "label": "Direct Preference Optimization (DPO)",
       "concept_type": "method",
       "difficulty": "advanced",
-      "summary": "DPO is a preference-based reinforcement learning method that uses a reward model to evaluate generations, allowing for precise alignment of language models with human preferences.",
+      "summary": "Direct Preference Optimization (DPO) aligns language models directly from human preference pairs by optimizing a preference objective using a policy and reference-policy formulation, avoiding the need to train a separate explicit reward model in the standard algorithm.",
       "tags": [],
       "sources": [
         {
@@ -73701,17 +73701,6 @@
       "from_name": "vLLM",
       "to_id": "paged_attention",
       "to_name": "PagedAttention",
-      "relation": "REQUIRES",
-      "edge_type": "REQUIRES",
-      "source": "v1_okf610_inherited",
-      "provenance_origin": "graph_v1_okf610",
-      "review_status": "PENDING_REVIEW"
-    },
-    {
-      "from_id": "vllm",
-      "from_name": "vLLM",
-      "to_id": "paging",
-      "to_name": "Paging",
       "relation": "REQUIRES",
       "edge_type": "REQUIRES",
       "source": "v1_okf610_inherited",

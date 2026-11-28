@@ -27,7 +27,10 @@ from .corpus_titles import clean_bibliographic_title
 from .docmap import hf_doc_path
 
 PROVENANCE_HASH_LEN = 16
-CANONICAL_CHUNK_RE = re.compile(r"^(?:chunk_\d+|[a-z0-9_]+_seed_\d+)$", re.I)
+CANONICAL_CHUNK_RE = re.compile(
+    r"^(?:chunk_\d+|[a-z0-9_]+_seed_\d+|d14:[0-9a-f]+:p\d+:c\d+)$",
+    re.I,
+)
 UPLOAD_CHUNK_RE = re.compile(r"^upload_[0-9a-f]+_p\d+_\d+$", re.I)
 _OSTEP_FILE_RE = re.compile(r"^(\d{2})_([a-z0-9_]+)\.pdf$", re.I)
 _RAW_FILENAME_EXT_RE = re.compile(r"\.(?:pdf|txt|md|json|html|htm)$", re.I)

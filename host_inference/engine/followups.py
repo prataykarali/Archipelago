@@ -82,12 +82,12 @@ _BLOCKED_UNDIRECTED_PAIRS: frozenset[frozenset[str]] = frozenset(
         frozenset({"pca", "web_traffic"}),
         frozenset({"principal_component_analysis", "web_traffic"}),
         frozenset({"tcp", "constitutional_principle"}),
+        frozenset({"paging", "vllm"}),
     }
 )
 _INTERDISCIPLINARY_FOLLOWUP_BRIDGES: frozenset[frozenset[str]] = frozenset(
     {
         frozenset({"paging", "paged_attention"}),
-        frozenset({"paging", "vllm"}),
         frozenset({"virtual_memory", "paged_attention"}),
         frozenset({"priority_queue_mechanics", "heuristic_search"}),
     }

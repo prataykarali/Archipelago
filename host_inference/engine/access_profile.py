@@ -28,8 +28,17 @@ _RESTRICTED_ARTIFACT_MARKERS = (
     "librarian_uploads/",
     "pearson",
     "/open/",
+    "pilot/silberschatz_",
+    "silberschatz",
+    "ramakrishnan",
+    "tanenbaum",
+    "hopcroft",
+    "forouzan",
+    "stallings",
+    "elmasri",
     "computer_networks_tanenbaum",
     "doc_computer_networks_",
+    "doc_introduction_to_the_design_and",
     "compilers_principles_techniques_tools_aho",
     "doc_compilers_principles_",
     "doc_fundamentals_of_database_",
@@ -204,6 +213,23 @@ def is_restricted_artifact_path(path: object) -> bool:
     return any(marker in low for marker in _RESTRICTED_ARTIFACT_MARKERS)
 
 
+def is_unauthorized_stub(record_or_id: object) -> bool:
+    """True when ``record_or_id`` is an excluded commercial, legacy ``doc_*``, or pilot stub."""
+    for ident in _extract_identifiers(record_or_id):
+        if is_d14_approved_oa(ident):
+            return False
+        low = ident.strip().lower().lstrip("/")
+        if not low:
+            continue
+        if is_d14_excluded_commercial(low) or is_restricted_artifact_path(low):
+            return True
+        if low.startswith(("pilot/", "metadata_only/", "excluded_")):
+            return True
+        if low.startswith("doc_") and not low.endswith(".pdf"):
+            return True
+    return False
+
+
 def active_access_profile() -> str:
     """Return ``open_access`` or ``institutional`` (default) from the environment."""
     raw = os.getenv(ACCESS_PROFILE_ENV, ACCESS_PROFILE_INSTITUTIONAL).strip().lower()
@@ -284,6 +310,7 @@ __all__ = [
     "is_open_access_profile",
     "is_pearson_url",
     "is_restricted_artifact_path",
+    "is_unauthorized_stub",
     "load_d14_source_registry",
     "lookup_d14_source",
     "strip_institutional_payload",

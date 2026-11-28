@@ -73,12 +73,18 @@ EXTRA_ALIASES: dict[str, str] = {
     "priority queue": "priority_queue_mechanics",
     "priority queues": "priority_queue_mechanics",
     "paging": "paging",
+    "virtual page": "paging",
+    "virtual page number": "paging",
+    "page frame": "paging",
+    "page frames": "paging",
+    "physical frame": "paging",
+    "optimal substructure": "dynamic_programming",
+    "overlapping subproblems": "dynamic_programming",
 }
 # Legitimate interdisciplinary graph edges exempt from cross-domain noise quarantine.
 _INTERDISCIPLINARY_EDGE_BRIDGES: frozenset[frozenset[str]] = frozenset(
     {
         frozenset({"paging", "paged_attention"}),
-        frozenset({"paging", "vllm"}),
         frozenset({"virtual_memory", "paged_attention"}),
         frozenset({"priority_queue_mechanics", "heuristic_search"}),
     }
@@ -174,7 +180,8 @@ class LibraryGraph:
         self.graph_path = str(resolved_path)
         source_bytes = resolved_path.read_bytes()
         raw = json.loads(source_bytes)
-        self.graph_version = sha256(source_bytes).hexdigest()[:12]
+        self.graph_sha256 = sha256(source_bytes).hexdigest()
+        self.graph_version = self.graph_sha256[:12]
         self.graph_artifact_version = str(raw.get("graph_version_id") or GRAPH_V1_ID)
         self.last_sync = resolved_path.stat().st_mtime
         # ``stats.fixture`` is stamped by scripts/build_corpus_fixture.py. Tracked

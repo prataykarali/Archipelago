@@ -107,6 +107,8 @@ def assign_canonical_citations(citations: list[dict[str, Any]] | None) -> list[d
         if ev_state in {EVIDENCE_STATE_UNAVAILABLE, EVIDENCE_STATE_METADATA_ONLY}:
             item.pop("url", None)
             item["pdf_url"] = ""
+            item["reader_url"] = ""
+            item["external_url"] = ""
             item["clickable"] = False
             item["reader_resolvable"] = False
         else:
@@ -115,8 +117,15 @@ def assign_canonical_citations(citations: list[dict[str, Any]] | None) -> list[d
                 safe_url = verified_citation_url(d14_canonical_oa_url(item))
             if safe_url:
                 item["url"] = safe_url
+                item["reader_url"] = safe_url
+                if safe_url.startswith("https://"):
+                    item["external_url"] = safe_url
+                else:
+                    item.setdefault("external_url", d14_canonical_oa_url(item) or "")
             else:
                 item.pop("url", None)
+                item["reader_url"] = ""
+                item["external_url"] = ""
 
         page = item.get("page_number")
         valid_page = page if isinstance(page, int) and not isinstance(page, bool) and page > 0 else None

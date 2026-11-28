@@ -89,6 +89,7 @@ def test_suggestions_align_with_12_graph_v2_domains_and_block_os_misclassificati
     }
     assert {label for _key, label, _pat in _KNOWLEDGE_AREA_SPECS} == expected_labels
 
+    monkeypatch.setattr("engine.suggestions.load_d14_source_registry", dict)
     monkeypatch.setattr(
         "engine.suggestions.load_hf_paths",
         lambda: [
@@ -294,6 +295,7 @@ def test_fallback_never_echoes_question_as_fake_general_explanation_or_leaks_pri
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """D14-DEF-060: Distinguish genuine general explanation vs honest abstention; strip prior context."""
+    monkeypatch.setattr("engine.suggestions.load_d14_source_registry", dict)
     monkeypatch.setattr(
         "engine.suggestions.load_hf_paths",
         lambda: ["ostep_three_easy_pieces/08_Paging.pdf"],

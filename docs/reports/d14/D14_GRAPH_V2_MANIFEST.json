@@ -2,14 +2,14 @@
   "artifact_version_id": "graph_v2_d14",
   "schema_version": "2.0.0-d14",
   "graph_path": "host_inference/fixtures/okf_graph_v2_d14.json",
-  "graph_sha256": "33a6f7117acc9160e3a9dea99b04b159a355f8c2efa350c0b7d926d0da430774",
+  "graph_sha256": "4f6861e6131cbccd7f60fa811492b20cba77fd1012acc7aecb9607f63c5c35ac",
   "parent_graph_id": "graph_v1_okf610",
   "parent_graph_path": "host_inference/fixtures/okf_graph.json",
   "parent_graph_sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
   "stats": {
     "total_concepts": 631,
-    "total_edges": 1944,
-    "requires_edges": 264,
+    "total_edges": 1943,
+    "requires_edges": 263,
     "enables_edges": 331,
     "uses_edges": 153,
     "part_of_edges": 176,
@@ -21,7 +21,7 @@
     "merged_duplicate_nodes": 5,
     "added_curriculum_nodes": 31,
     "updated_summaries": 87,
-    "removed_invalid_edges": 102,
+    "removed_invalid_edges": 103,
     "added_curated_edges": 66,
     "cycle_breaks": 1
   },
@@ -40,7 +40,7 @@
     "Computer Architecture": 11
   },
   "review_status_counts": {
-    "PENDING_REVIEW": 1944
+    "PENDING_REVIEW": 1943
   },
   "invariants": {
     "v1_baseline_untouched": true,
@@ -49,5 +49,6 @@
     "placeholder_summaries": 0,
     "empty_summaries": 0,
     "auto_promoted_human_verified_edges": 0
-  }
+  },
+  "revision": "d14.9"
 }
